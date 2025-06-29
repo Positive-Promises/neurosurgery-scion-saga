@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Howl, Howler } from 'howler';
 
+// Simplified audio system to avoid Howler issues
 interface AudioTrack {
   id: string;
   src: string;
@@ -21,7 +21,7 @@ interface AccessibilitySettings {
 }
 
 export const useEnhancedAudio = () => {
-  const audioRefs = useRef<Map<string, Howl>>(new Map());
+  const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
   const [isEnabled, setIsEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.6);
   const [sfxVolume, setSfxVolume] = useState(0.8);
@@ -35,50 +35,59 @@ export const useEnhancedAudio = () => {
 
   // Initialize accessibility settings from system preferences
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
-    
-    setAccessibilitySettings(prev => ({
-      ...prev,
-      reducedMotion: mediaQuery.matches,
-      highContrast: highContrastQuery.matches,
-      screenReader: !!navigator.userAgent.match(/JAWS|NVDA|SAPI|VoiceOver|Window-Eyes|Dragon/i)
-    }));
+    try {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
+      
+      setAccessibilitySettings(prev => ({
+        ...prev,
+        reducedMotion: mediaQuery.matches,
+        highContrast: highContrastQuery.matches,
+        screenReader: !!navigator.userAgent.match(/JAWS|NVDA|SAPI|VoiceOver|Window-Eyes|Dragon/i)
+      }));
 
-    const handleMotionChange = (e: MediaQueryListEvent) => {
-      setAccessibilitySettings(prev => ({ ...prev, reducedMotion: e.matches }));
-    };
+      const handleMotionChange = (e: MediaQueryListEvent) => {
+        setAccessibilitySettings(prev => ({ ...prev, reducedMotion: e.matches }));
+      };
 
-    const handleContrastChange = (e: MediaQueryListEvent) => {
-      setAccessibilitySettings(prev => ({ ...prev, highContrast: e.matches }));
-    };
+      const handleContrastChange = (e: MediaQueryListEvent) => {
+        setAccessibilitySettings(prev => ({ ...prev, highContrast: e.matches }));
+      };
 
-    mediaQuery.addEventListener('change', handleMotionChange);
-    highContrastQuery.addEventListener('change', handleContrastChange);
+      mediaQuery.addEventListener('change', handleMotionChange);
+      highContrastQuery.addEventListener('change', handleContrastChange);
 
-    return () => {
-      mediaQuery.removeEventListener('change', handleMotionChange);
-      highContrastQuery.removeEventListener('change', handleContrastChange);
-    };
+      return () => {
+        mediaQuery.removeEventListener('change', handleMotionChange);
+        highContrastQuery.removeEventListener('change', handleContrastChange);
+      };
+    } catch (error) {
+      console.warn('Failed to initialize accessibility settings:', error);
+    }
   }, []);
 
   const preloadMedicalAudio = useCallback((tracks: AudioTrack[]) => {
     tracks.forEach(track => {
       if (!audioRefs.current.has(track.id)) {
-        const howl = new Howl({
-          src: [track.src],
-          volume: track.volume || (track.category === 'music' ? musicVolume : sfxVolume),
-          loop: track.loop || false,
-          preload: true,
-          html5: track.category === 'music',
-          onload: () => {
+        try {
+          const audio = new Audio();
+          audio.src = track.src;
+          audio.volume = track.volume || (track.category === 'music' ? musicVolume : sfxVolume);
+          audio.loop = track.loop || false;
+          audio.preload = 'auto';
+          
+          audio.addEventListener('loadeddata', () => {
             console.log(`Medical audio loaded: ${track.id}`);
-          },
-          onloaderror: (id, error) => {
+          });
+          
+          audio.addEventListener('error', (error) => {
             console.error(`Failed to load medical audio ${track.id}:`, error);
-          }
-        });
-        audioRefs.current.set(track.id, howl);
+          });
+          
+          audioRefs.current.set(track.id, audio);
+        } catch (error) {
+          console.error(`Error creating audio for ${track.id}:`, error);
+        }
       }
     });
   }, [musicVolume, sfxVolume]);
@@ -92,35 +101,41 @@ export const useEnhancedAudio = () => {
   }) => {
     if (!isEnabled) return;
     
-    const audio = audioRefs.current.get(id);
-    if (audio) {
-      // Announce to screen readers if description provided
-      if (options?.accessibleDescription && accessibilitySettings.screenReader) {
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.textContent = options.accessibleDescription;
-        announcement.style.position = 'absolute';
-        announcement.style.left = '-9999px';
-        document.body.appendChild(announcement);
-        setTimeout(() => document.body.removeChild(announcement), 1000);
-      }
+    try {
+      const audio = audioRefs.current.get(id);
+      if (audio) {
+        // Announce to screen readers if description provided
+        if (options?.accessibleDescription && accessibilitySettings.screenReader) {
+          const announcement = document.createElement('div');
+          announcement.setAttribute('aria-live', 'polite');
+          announcement.setAttribute('aria-atomic', 'true');
+          announcement.textContent = options.accessibleDescription;
+          announcement.style.position = 'absolute';
+          announcement.style.left = '-9999px';
+          document.body.appendChild(announcement);
+          setTimeout(() => {
+            if (document.body.contains(announcement)) {
+              document.body.removeChild(announcement);
+            }
+          }, 1000);
+        }
 
-      if (options?.volume) {
-        audio.volume(options.volume);
-      }
-      
-      if (options?.fade) {
-        audio.fade(0, audio.volume(), 1000);
-      }
+        if (options?.volume !== undefined) {
+          audio.volume = Math.max(0, Math.min(1, options.volume));
+        }
 
-      // Spatial audio positioning (simulated for web audio)
-      if (options?.spatialPosition) {
-        const [x, y, z] = options.spatialPosition;
-        audio.pos(x, y, z);
+        // Reset audio to beginning and play
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.warn(`Audio play failed for ${id}:`, error);
+          });
+        }
       }
-
-      audio.play();
+    } catch (error) {
+      console.warn(`Error playing audio ${id}:`, error);
     }
   }, [isEnabled, accessibilitySettings.screenReader]);
 
@@ -133,14 +148,6 @@ export const useEnhancedAudio = () => {
         loop: true,
         category: 'ambient',
         medicalContext: 'learning'
-      },
-      {
-        id: 'heartbeat-monitor',
-        src: '/audio/heartbeat.mp3',
-        volume: Math.max(0.1, 0.4 - userStress * 0.3),
-        loop: true,
-        category: 'medical',
-        medicalContext: 'diagnostic'
       },
       {
         id: 'success-chime',
@@ -161,52 +168,77 @@ export const useEnhancedAudio = () => {
     // Adjust audio based on stress level and accessibility needs
     const adjustedTracks = baseTracks.map(track => ({
       ...track,
-      volume: accessibilitySettings.reducedMotion ? track.volume! * 0.7 : track.volume
+      volume: accessibilitySettings.reducedMotion ? (track.volume || 0.5) * 0.7 : track.volume
     }));
 
     preloadMedicalAudio(adjustedTracks);
     
     // Start ambient tracks
-    playMedicalAudio('medical-ambient', {
-      accessibleDescription: 'Medical learning environment audio started'
-    });
-    
-    if (userStress < 0.7) {
-      playMedicalAudio('heartbeat-monitor', {
-        accessibleDescription: 'Patient monitoring sounds active'
+    setTimeout(() => {
+      playMedicalAudio('medical-ambient', {
+        accessibleDescription: 'Medical learning environment audio started'
       });
-    }
+    }, 100);
   }, [preloadMedicalAudio, playMedicalAudio, accessibilitySettings.reducedMotion]);
 
   const stopMedicalAudio = useCallback((id: string, fade: boolean = true) => {
-    const audio = audioRefs.current.get(id);
-    if (audio) {
-      if (fade && !accessibilitySettings.reducedMotion) {
-        audio.fade(audio.volume(), 0, 1000);
-        setTimeout(() => audio.stop(), 1000);
-      } else {
-        audio.stop();
+    try {
+      const audio = audioRefs.current.get(id);
+      if (audio) {
+        if (fade && !accessibilitySettings.reducedMotion) {
+          // Simple fade out
+          const fadeInterval = setInterval(() => {
+            if (audio.volume > 0.1) {
+              audio.volume = Math.max(0, audio.volume - 0.1);
+            } else {
+              audio.pause();
+              audio.volume = 1;
+              clearInterval(fadeInterval);
+            }
+          }, 100);
+        } else {
+          audio.pause();
+        }
       }
+    } catch (error) {
+      console.warn(`Error stopping audio ${id}:`, error);
     }
   }, [accessibilitySettings.reducedMotion]);
 
   const toggleAudio = useCallback(() => {
-    setIsEnabled(!isEnabled);
-    if (!isEnabled) {
-      Howler.mute(false);
-    } else {
-      Howler.mute(true);
-    }
-  }, [isEnabled]);
+    setIsEnabled(prev => {
+      const newState = !prev;
+      // Mute/unmute all audio elements
+      audioRefs.current.forEach(audio => {
+        audio.muted = !newState;
+      });
+      return newState;
+    });
+  }, []);
 
   const updateAccessibilitySettings = useCallback((settings: Partial<AccessibilitySettings>) => {
     setAccessibilitySettings(prev => ({ ...prev, ...settings }));
   }, []);
 
+  // Update volume for existing audio elements
+  useEffect(() => {
+    audioRefs.current.forEach((audio, id) => {
+      if (audio && !audio.paused) {
+        const track = id.includes('music') ? musicVolume : sfxVolume;
+        audio.volume = track;
+      }
+    });
+  }, [musicVolume, sfxVolume]);
+
   useEffect(() => {
     return () => {
       audioRefs.current.forEach(audio => {
-        audio.unload();
+        try {
+          audio.pause();
+          audio.src = '';
+        } catch (error) {
+          console.warn('Error cleaning up audio:', error);
+        }
       });
       audioRefs.current.clear();
     };
