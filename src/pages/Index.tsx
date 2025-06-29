@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import PlayerStats from '@/components/PlayerStats';
 import GameLevel from '@/components/GameLevel';
 import LevelDetailsModal from '@/components/LevelDetailsModal';
+import GameLauncher from '@/components/GameLauncher';
 import { GAME_LEVELS } from '@/data/gameLevels';
 
 const NeurosurgicalScion = () => {
   const [selectedLevel, setSelectedLevel] = useState(null);
+  const [showLevelDetails, setShowLevelDetails] = useState(false);
+  const [showGameLauncher, setShowGameLauncher] = useState(false);
   const [playerStats, setPlayerStats] = useState({
     totalXP: 0,
     level: 1,
@@ -14,7 +17,6 @@ const NeurosurgicalScion = () => {
     achievements: [],
     surgicalRank: "Medical Student"
   });
-  const [showLevelDetails, setShowLevelDetails] = useState(false);
 
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
@@ -22,13 +24,18 @@ const NeurosurgicalScion = () => {
   };
 
   const handleStartLevel = () => {
-    console.log(`Launching surgical case: ${selectedLevel?.title}...`);
-    // TODO: Implement level gameplay
+    setShowLevelDetails(false);
+    setShowGameLauncher(true);
   };
 
   const handleCloseModal = () => {
     setSelectedLevel(null);
     setShowLevelDetails(false);
+  };
+
+  const handleCloseLauncher = () => {
+    setShowGameLauncher(false);
+    setSelectedLevel(null);
   };
 
   return (
@@ -68,6 +75,14 @@ const NeurosurgicalScion = () => {
             onClose={handleCloseModal}
             onStartLevel={handleStartLevel}
           />
+
+          {/* Game Launcher */}
+          {showGameLauncher && selectedLevel && (
+            <GameLauncher
+              level={selectedLevel}
+              onClose={handleCloseLauncher}
+            />
+          )}
         </div>
       </div>
     </div>

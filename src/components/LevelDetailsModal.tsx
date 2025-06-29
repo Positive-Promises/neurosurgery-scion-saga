@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Target, Gamepad2 } from 'lucide-react';
+import { Brain, Target, Gamepad2, X } from 'lucide-react';
 
 interface LevelDetailsModalProps {
   level: {
@@ -43,9 +43,17 @@ const LevelDetailsModal: React.FC<LevelDetailsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-3xl w-full bg-slate-800 border-blue-500">
-        <CardHeader>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="max-w-3xl w-full bg-slate-800/95 backdrop-blur-sm border-blue-500 animate-scale-in">
+        <CardHeader className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="absolute top-2 right-2 text-gray-400 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </Button>
           <CardTitle className="text-white text-2xl flex items-center gap-3">
             <Brain className="w-8 h-8 text-cyan-400" />
             {level.title}
@@ -68,7 +76,7 @@ const LevelDetailsModal: React.FC<LevelDetailsModalProps> = ({
             </ul>
           </div>
 
-          <div className="bg-slate-700/50 p-3 rounded-lg">
+          <div className="bg-slate-700/50 backdrop-blur-sm p-3 rounded-lg">
             <h4 className="text-cyan-400 font-semibold mb-1">Surgical Focus:</h4>
             <p className="text-gray-300 text-sm">{level.surgicalFocus}</p>
           </div>
