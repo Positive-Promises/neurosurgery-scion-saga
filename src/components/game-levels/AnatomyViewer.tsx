@@ -30,10 +30,10 @@ const AnatomyViewer: React.FC<AnatomyViewerProps> = ({
 
   // Level 1: Neuroanatomical Foundations
   const anatomyParts = [
-    { id: 'cerebrum', position: [0, 1, 0], color: '#ff6b6b', label: 'Cerebrum' },
-    { id: 'cerebellum', position: [0, -0.5, -1], color: '#4ecdc4', label: 'Cerebellum' },
-    { id: 'brainstem', position: [0, 0, 0], color: '#45b7d1', label: 'Brainstem' },
-    { id: 'ventricles', position: [0, 0.5, 0.5], color: '#96ceb4', label: 'Ventricles' },
+    { id: 'cerebrum', position: [0, 1, 0] as [number, number, number], color: '#ff6b6b', label: 'Cerebrum' },
+    { id: 'cerebellum', position: [0, -0.5, -1] as [number, number, number], color: '#4ecdc4', label: 'Cerebellum' },
+    { id: 'brainstem', position: [0, 0, 0] as [number, number, number], color: '#45b7d1', label: 'Brainstem' },
+    { id: 'ventricles', position: [0, 0.5, 0.5] as [number, number, number], color: '#96ceb4', label: 'Ventricles' },
   ];
 
   const handlePartClick = (partId: string, partIndex: number) => {
@@ -107,7 +107,7 @@ const AnatomyViewer: React.FC<AnatomyViewerProps> = ({
               Math.sin(i * 0.5) * 2,
               Math.cos(i * 0.3) * 2,
               Math.sin(i * 0.7) * 2
-            ]}
+            ] as [number, number, number]}
           >
             <meshStandardMaterial color="#ffd93d" emissive="#ffaa00" emissiveIntensity={0.2} />
           </Box>
