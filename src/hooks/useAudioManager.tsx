@@ -1,114 +1,104 @@
 
-import { useEffect, useRef, useState } from 'react';
-import { Howl, Howler } from 'howler';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface AudioTrack {
   id: string;
   src: string;
-  volume?: number;
+  category: 'music' | 'sfx' | 'voice' | 'ambient';
   loop?: boolean;
-  category: 'music' | 'sfx' | 'ambient' | 'voice';
+  volume?: number;
 }
 
 export const useAudioManager = () => {
-  const audioRefs = useRef<Map<string, Howl>>(new Map());
-  const [isEnabled, setIsEnabled] = useState(true);
-  const [musicVolume, setMusicVolume] = useState(0.6);
-  const [sfxVolume, setSfxVolume] = useState(0.8);
+  const audioElements = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const [isMuted, setIsMuted] = useState(false);
+  const [masterVolume, setMasterVolume] = useState(0.7);
 
-  // Preload essential audio tracks
-  const preloadAudio = (tracks: AudioTrack[]) => {
+  const preloadAudio = useCallback((tracks: AudioTrack[]) => {
     tracks.forEach(track => {
-      if (!audioRefs.current.has(track.id)) {
-        const howl = new Howl({
-          src: [track.src],
-          volume: track.volume || (track.category === 'music' ? musicVolume : sfxVolume),
-          loop: track.loop || false,
-          preload: true,
-          html5: track.category === 'music' // Use HTML5 for music to save memory
-        });
-        audioRefs.current.set(track.id, howl);
+      if (!audioElements.current.has(track.id)) {
+        try {
+          const audio = new Audio(track.src);
+          audio.loop = track.loop || false;
+          audio.volume = (track.volume || 0.5) * masterVolume;
+          audio.preload = 'auto';
+          
+          audio.addEventListener('error', () => {
+            console.warn(`Failed to load audio: ${track.id}`);
+          });
+          
+          audioElements.current.set(track.id, audio);
+        } catch (error) {
+          console.warn(`Error creating audio element for ${track.id}:`, error);
+        }
       }
     });
-  };
+  }, [masterVolume]);
 
-  const playAudio = (id: string, options?: { volume?: number; fade?: boolean }) => {
-    if (!isEnabled) return;
+  const playAudio = useCallback((id: string) => {
+    if (isMuted) return;
     
-    const audio = audioRefs.current.get(id);
+    const audio = audioElements.current.get(id);
     if (audio) {
-      if (options?.volume) {
-        audio.volume(options.volume);
+      try {
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.warn(`Audio play failed for ${id}:`, error);
+          });
+        }
+      } catch (error) {
+        console.warn(`Error playing audio ${id}:`, error);
       }
-      if (options?.fade) {
-        audio.fade(0, audio.volume(), 1000);
-      }
-      audio.play();
     }
-  };
+  }, [isMuted]);
 
-  const stopAudio = (id: string, fade?: boolean) => {
-    const audio = audioRefs.current.get(id);
+  const stopAudio = useCallback((id: string, fadeOut: boolean = false) => {
+    const audio = audioElements.current.get(id);
     if (audio) {
-      if (fade) {
-        audio.fade(audio.volume(), 0, 1000);
-        setTimeout(() => audio.stop(), 1000);
+      if (fadeOut) {
+        const fadeInterval = setInterval(() => {
+          if (audio.volume > 0.1) {
+            audio.volume -= 0.1;
+          } else {
+            audio.pause();
+            audio.volume = (masterVolume * 0.5);
+            clearInterval(fadeInterval);
+          }
+        }, 100);
       } else {
-        audio.stop();
+        audio.pause();
       }
     }
-  };
+  }, [masterVolume]);
 
-  const pauseAudio = (id: string) => {
-    const audio = audioRefs.current.get(id);
-    if (audio) {
-      audio.pause();
-    }
-  };
-
-  const setGlobalVolume = (category: 'music' | 'sfx', volume: number) => {
-    if (category === 'music') {
-      setMusicVolume(volume);
-      Howler.volume(volume);
-    } else {
-      setSfxVolume(volume);
-    }
-    
-    // Update existing audio volumes
-    audioRefs.current.forEach((audio, id) => {
-      // This is a simplified approach - in production, you'd track categories per audio
-      audio.volume(volume);
-    });
-  };
-
-  const toggleAudio = () => {
-    setIsEnabled(!isEnabled);
-    if (!isEnabled) {
-      Howler.mute(false);
-    } else {
-      Howler.mute(true);
-    }
-  };
-
-  useEffect(() => {
-    // Cleanup on unmount
-    return () => {
-      audioRefs.current.forEach(audio => {
-        audio.unload();
+  const toggleMute = useCallback(() => {
+    setIsMuted(prev => {
+      const newMuted = !prev;
+      audioElements.current.forEach(audio => {
+        audio.muted = newMuted;
       });
-      audioRefs.current.clear();
-    };
+      return newMuted;
+    });
   }, []);
+
+  // Update volume for all audio elements when masterVolume changes
+  useEffect(() => {
+    audioElements.current.forEach(audio => {
+      if (!audio.muted) {
+        audio.volume = masterVolume * 0.5;
+      }
+    });
+  }, [masterVolume]);
 
   return {
     preloadAudio,
     playAudio,
     stopAudio,
-    pauseAudio,
-    setGlobalVolume,
-    toggleAudio,
-    isEnabled,
-    musicVolume,
-    sfxVolume
+    toggleMute,
+    isMuted,
+    masterVolume,
+    setMasterVolume
   };
 };
