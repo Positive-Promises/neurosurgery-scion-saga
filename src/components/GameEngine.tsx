@@ -7,6 +7,7 @@ import { useAudioManager } from '@/hooks/useAudioManager';
 import { useSpatialAudio } from '@/hooks/useSpatialAudio';
 import XRMedicalEnvironment from './3d/XRMedicalEnvironment';
 import SurgicalPhysics from './3d/SurgicalPhysics';
+import MedicalModelLoader from './3d/MedicalModelLoader';
 import GameUI from './GameUI';
 
 interface GameEngineProps {
@@ -175,12 +176,37 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
   const handleToolInteraction = (toolId: string, targetPart: string) => {
     console.log(`Tool ${toolId} interacted with ${targetPart}`);
-    // Logic for surgical tool interactions
     handleObjectiveComplete(0, 50);
+  };
+
+  const handleModelInteraction = (partName: string) => {
+    console.log(`Model interaction: ${partName}`);
+    // Check if this matches any current objective
+    const objective = level.objectives[0]; // Simplified for now
+    if (objective) {
+      handleObjectiveComplete(0, 100);
+    }
   };
 
   const handleCameraMove = (position: [number, number, number], rotation: [number, number, number]) => {
     updateListenerPosition(position, rotation);
+  };
+
+  // Get model path based on level
+  const getModelPath = (levelId: number): string => {
+    const modelPaths: Record<number, string> = {
+      1: '/models/brain-anatomy.glb',
+      2: '/models/spine-anatomy.glb',
+      3: '/models/nervous-system.glb',
+      4: '/models/surgical-instruments.glb',
+      5: '/models/brain-pathology.glb',
+      6: '/models/spinal-cord.glb',
+      7: '/models/cranial-nerves.glb',
+      8: '/models/cerebrovascular.glb',
+      9: '/models/tumor-models.glb',
+      10: '/models/complex-cases.glb'
+    };
+    return modelPaths[levelId] || '/models/default-anatomy.glb';
   };
 
   const renderGameContent = () => {
@@ -198,21 +224,23 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
     return (
       <group>
-        {/* Traditional 3D content with physics */}
-        <SurgicalPhysics
-          tools={surgicalTools}
-          onToolInteraction={handleToolInteraction}
-          enableHaptics={true}
+        {/* Main medical model */}
+        <MedicalModelLoader
+          modelPath={getModelPath(level.id)}
+          levelId={level.id}
+          onInteraction={handleModelInteraction}
+          interactive={true}
+          xrayMode={level.id > 5}
+          crossSection={level.id > 7}
         />
         
-        {/* Level-specific content */}
+        {/* Physics simulation for surgery levels */}
         {level.gameType === 'surgery' && (
-          <group>
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[1, 32, 32]} />
-              <meshStandardMaterial color="#ffaaaa" />
-            </mesh>
-          </group>
+          <SurgicalPhysics
+            tools={surgicalTools}
+            onToolInteraction={handleToolInteraction}
+            enableHaptics={true}
+          />
         )}
       </group>
     );

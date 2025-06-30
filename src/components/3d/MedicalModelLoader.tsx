@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
+import { BrainModel, SpineModel, DefaultAnatomyModel } from './PlaceholderModels';
 
 interface MedicalModelProps {
   modelPath: string;
@@ -26,9 +27,18 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   const groupRef = useRef<THREE.Group>(null);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [useplaceholder, setUsePlaceholder] = useState(false);
 
-  // Load GLTF model with error handling
-  const { scene } = useGLTF(modelPath);
+  // Try to load GLTF model with error handling
+  let scene: THREE.Group | null = null;
+  try {
+    const gltfResult = useGLTF(modelPath);
+    scene = gltfResult.scene;
+  } catch (error) {
+    console.warn('GLTF loading failed, using placeholder:', error);
+    setLoadingError('Failed to load 3D model');
+    setUsePlaceholder(true);
+  }
   
   // Load medical textures with fallback
   let normalMap: THREE.Texture | null = null;
@@ -43,7 +53,7 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
 
   // Apply medical-grade materials
   useEffect(() => {
-    if (scene) {
+    if (scene && !useplaceholder) {
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           // Apply PBR materials for realistic tissue rendering
@@ -71,7 +81,7 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
         }
       });
     }
-  }, [scene, normalMap, roughnessMap, xrayMode]);
+  }, [scene, normalMap, roughnessMap, xrayMode, useplaceholder]);
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     if (!interactive || !onInteraction) return;
@@ -98,12 +108,40 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
     document.body.style.cursor = 'default';
   };
 
-  if (loadingError) {
+  // Determine which placeholder model to use based on levelId
+  const getPlaceholderModel = () => {
+    if (levelId === 1 || levelId === 5 || levelId === 9) {
+      return <BrainModel interactive={interactive} onInteraction={onInteraction} />;
+    } else if (levelId === 2 || levelId === 6) {
+      return <SpineModel interactive={interactive} onInteraction={onInteraction} />;
+    } else {
+      return <DefaultAnatomyModel interactive={interactive} onInteraction={onInteraction} />;
+    }
+  };
+
+  if (loadingError || useplaceholder || !scene) {
     return (
-      <mesh>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="red" transparent opacity={0.5} />
-      </mesh>
+      <group 
+        ref={groupRef}
+        onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      >
+        {getPlaceholderModel()}
+        
+        {/* Cross-sectional cutting plane */}
+        {crossSection && (
+          <mesh position={[0, 0, 0]}>
+            <planeGeometry args={[5, 5]} />
+            <meshBasicMaterial 
+              color="#00ff00" 
+              transparent 
+              opacity={0.2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )}
+      </group>
     );
   }
 

@@ -29,8 +29,7 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
   const sceneRef = useRef<THREE.Group>(null);
   
   // Create XR store
-  const vrStore = createXRStore();
-  const arStore = createXRStore();
+  const store = createXRStore();
 
   // Get model path based on level
   const getModelPath = (levelId: number): string => {
@@ -84,10 +83,10 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
       {/* VR/AR Entry Buttons */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         {enableVR && (
-          <VRButton store={vrStore} />
+          <VRButton store={store} />
         )}
         {enableAR && (
-          <ARButton store={arStore} />
+          <ARButton store={store} />
         )}
       </div>
 
@@ -104,7 +103,7 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
           gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         }}
       >
-        <XR store={enableVR ? vrStore : arStore}>
+        <XR store={store}>
           {/* Lighting setup for medical visualization */}
           <ambientLight intensity={0.4} />
           <directionalLight 
