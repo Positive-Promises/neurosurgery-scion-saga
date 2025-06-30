@@ -47,7 +47,8 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
             newPositions[i + 2] = positions[i + 2];
           }
           
-          positionAttribute.copyArray(newPositions);
+          // Use direct array assignment instead of copyArray
+          (positionAttribute.array as Float32Array).set(newPositions);
           positionAttribute.needsUpdate = true;
           geometry.computeVertexNormals();
         }
@@ -141,7 +142,8 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
 
         const positionAttribute = particlesRef.current.geometry.getAttribute('position');
         if (positionAttribute) {
-          positionAttribute.copyArray(positions);
+          // Use direct array assignment instead of copyArray
+          (positionAttribute.array as Float32Array).set(positions);
           positionAttribute.needsUpdate = true;
         }
       }
