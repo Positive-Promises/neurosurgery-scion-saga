@@ -1,9 +1,10 @@
-
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
 import { useAudioManager } from '@/hooks/useAudioManager';
-import AnatomyViewer from './game-levels/AnatomyViewer';
+import { useSpatialAudio } from '@/hooks/useSpatialAudio';
+import XRMedicalEnvironment from './3d/XRMedicalEnvironment';
+import SurgicalPhysics from './3d/SurgicalPhysics';
 import GameUI from './GameUI';
 
 interface GameEngineProps {
@@ -46,15 +47,38 @@ class Canvas3DErrorBoundary extends React.Component<
 
 const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) => {
   const { preloadAudio, playAudio, stopAudio } = useAudioManager();
+  const { 
+    createMedicalSoundscape, 
+    updateListenerPosition, 
+    toggleSpatialAudio,
+    isEnabled: spatialAudioEnabled 
+  } = useSpatialAudio();
+  
   const [gameState, setGameState] = useState<'loading' | 'playing' | 'paused' | 'completed'>('loading');
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [useXR, setUseXR] = useState(false);
+  const [surgicalTools, setSurgicalTools] = useState([
+    {
+      id: 'scalpel-1',
+      type: 'scalpel' as const,
+      position: [1, 0, 1] as [number, number, number],
+      rotation: [0, 0, 0] as [number, number, number]
+    },
+    {
+      id: 'forceps-1',
+      type: 'forceps' as const,
+      position: [-1, 0, 1] as [number, number, number],
+      rotation: [0, 0, 0] as [number, number, number]
+    }
+  ]);
+  
   const gameStartTime = useRef(Date.now());
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cameraRef = useRef<THREE.Camera>(null);
 
   useEffect(() => {
-    // Preload level-specific audio with error handling
+    // Initialize both traditional and spatial audio
     const audioTracks = [
       {
         id: 'level-music',
@@ -74,29 +98,24 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         src: '/audio/error.mp3',
         category: 'sfx' as const,
         volume: 0.6
-      },
-      {
-        id: 'click-sound',
-        src: '/audio/click.mp3',
-        category: 'sfx' as const,
-        volume: 0.5
       }
     ];
 
     try {
       preloadAudio(audioTracks);
+      createMedicalSoundscape(level.id);
     } catch (err) {
-      console.warn('Audio preload failed:', err);
+      console.warn('Audio initialization failed:', err);
     }
 
-    // Start game after loading with error handling
+    // Start game after loading
     const startTimer = setTimeout(() => {
       try {
         setGameState('playing');
         playAudio('level-music');
       } catch (err) {
         console.warn('Game start audio failed:', err);
-        setGameState('playing'); // Continue without audio
+        setGameState('playing');
       }
     }, 2000);
 
@@ -108,7 +127,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         console.warn('Audio cleanup failed:', err);
       }
     };
-  }, [level.id, preloadAudio, playAudio, stopAudio]);
+  }, [level.id, preloadAudio, playAudio, stopAudio, createMedicalSoundscape]);
 
   const handleObjectiveComplete = (objectiveIndex: number, points: number) => {
     try {
@@ -152,25 +171,49 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
     }, 2000);
   };
 
+  const handleToolInteraction = (toolId: string, targetPart: string) => {
+    console.log(`Tool ${toolId} interacted with ${targetPart}`);
+    // Logic for surgical tool interactions
+    handleObjectiveComplete(0, 50);
+  };
+
+  const handleCameraMove = (position: [number, number, number], rotation: [number, number, number]) => {
+    updateListenerPosition(position, rotation);
+  };
+
   const renderGameContent = () => {
-    switch (level.gameType) {
-      case 'anatomy':
-        return (
-          <AnatomyViewer
-            levelId={level.id}
-            objectives={level.objectives}
-            onObjectiveComplete={handleObjectiveComplete}
-            onError={handleError}
-          />
-        );
-      default:
-        return (
-          <mesh>
-            <boxGeometry args={[2, 2, 2]} />
-            <meshStandardMaterial color="hotpink" />
-          </mesh>
-        );
+    if (useXR) {
+      return (
+        <XRMedicalEnvironment
+          level={level}
+          onObjectiveComplete={handleObjectiveComplete}
+          onError={handleError}
+          enableVR={true}
+          enableAR={level.id > 5}
+        />
+      );
     }
+
+    return (
+      <group>
+        {/* Traditional 3D content with physics */}
+        <SurgicalPhysics
+          tools={surgicalTools}
+          onToolInteraction={handleToolInteraction}
+          enableHaptics={true}
+        />
+        
+        {/* Level-specific content */}
+        {level.gameType === 'surgery' && (
+          <group>
+            <mesh position={[0, 0, 0]}>
+              <sphereGeometry args={[1, 32, 32]} />
+              <meshStandardMaterial color="#ffaaaa" />
+            </mesh>
+          </group>
+        )}
+      </group>
+    );
   };
 
   const Canvas3DFallback = () => (
@@ -189,7 +232,21 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mb-4"></div>
           <h2 className="text-2xl font-bold text-white mb-2">Loading {level.title}</h2>
-          <p className="text-gray-300">Preparing surgical environment...</p>
+          <p className="text-gray-300">Preparing advanced 3D medical environment...</p>
+          <div className="mt-4 space-x-4">
+            <button 
+              onClick={() => setUseXR(false)}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white"
+            >
+              Standard 3D
+            </button>
+            <button 
+              onClick={() => setUseXR(true)}
+              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-white"
+            >
+              XR/VR Mode
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -199,7 +256,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
     return (
       <div className="fixed inset-0 bg-slate-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Game Engine Error</h2>
+          <h2 className="text-2xl font-bold mb-4">Advanced 3D Engine Error</h2>
           <p className="text-red-400 mb-4">{error}</p>
           <button 
             onClick={onExit}
@@ -212,12 +269,15 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
     );
   }
 
+  if (useXR) {
+    return renderGameContent();
+  }
+
   return (
     <div className="fixed inset-0 bg-slate-900">
-      {/* 3D Game Canvas with Error Boundary */}
+      {/* Enhanced 3D Canvas with XR capabilities */}
       <Canvas3DErrorBoundary fallback={<Canvas3DFallback />}>
         <Canvas 
-          ref={canvasRef}
           className="absolute inset-0"
           gl={{ 
             antialias: true,
@@ -225,34 +285,54 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
             preserveDrawingBuffer: false,
             powerPreference: "high-performance"
           }}
-          onCreated={({ gl }) => {
+          onCreated={({ gl, camera }) => {
             gl.setClearColor('#1e293b');
             gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            gl.shadowMap.enabled = true;
+            gl.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Store camera reference for spatial audio
+            cameraRef.current = camera;
           }}
           onError={(error) => {
-            console.error('Canvas error:', error);
-            setError('Failed to initialize 3D environment. Please try refreshing the page.');
+            console.error('Enhanced Canvas error:', error);
+            setError('Failed to initialize advanced 3D environment. Please try refreshing the page.');
           }}
         >
           <Suspense fallback={null}>
-            <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+            <PerspectiveCamera 
+              makeDefault 
+              position={[0, 0, 5]}
+              onUpdate={(camera) => {
+                const pos = camera.position;
+                const rot = camera.rotation;
+                handleCameraMove([pos.x, pos.y, pos.z], [rot.x, rot.y, rot.z]);
+              }}
+            />
             <OrbitControls 
               enablePan={true} 
               enableZoom={true} 
               enableRotate={true}
-              maxDistance={10}
-              minDistance={2}
+              maxDistance={15}
+              minDistance={1}
             />
             <Environment preset="studio" />
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} />
+            <ambientLight intensity={0.3} />
+            <directionalLight 
+              position={[10, 10, 10]} 
+              intensity={1}
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+            />
+            <pointLight position={[-10, -10, -10]} intensity={0.5} />
             
             {renderGameContent()}
           </Suspense>
         </Canvas>
       </Canvas3DErrorBoundary>
 
-      {/* Game UI Overlay */}
+      {/* Enhanced Game UI */}
       <GameUI
         level={level}
         score={score}
@@ -262,6 +342,30 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         onResume={() => setGameState('playing')}
         onExit={onExit}
       />
+
+      {/* XR/VR Toggle Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <button
+          onClick={() => setUseXR(!useXR)}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors"
+        >
+          {useXR ? 'Exit XR' : 'Enter XR/VR'}
+        </button>
+      </div>
+
+      {/* Spatial Audio Toggle */}
+      <div className="absolute top-4 left-32 z-10">
+        <button
+          onClick={toggleSpatialAudio}
+          className={`px-4 py-2 rounded transition-colors ${
+            spatialAudioEnabled 
+              ? 'bg-green-600 hover:bg-green-700' 
+              : 'bg-gray-600 hover:bg-gray-700'
+          } text-white`}
+        >
+          3D Audio: {spatialAudioEnabled ? 'ON' : 'OFF'}
+        </button>
+      </div>
     </div>
   );
 };
