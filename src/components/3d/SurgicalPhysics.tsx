@@ -2,7 +2,6 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, Physics, CuboidCollider } from '@react-three/rapier';
-import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface SurgicalTool {
@@ -38,20 +37,20 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
         const positionAttribute = geometry.getAttribute('position');
         
         // Apply deformation based on surgical interaction
-        for (let i = 0; i < positionAttribute.count; i++) {
-          const vertex = new THREE.Vector3();
-          vertex.fromBufferAttribute(positionAttribute, i);
+        if (positionAttribute && deformationAmount > 0) {
+          const positions = positionAttribute.array as Float32Array;
+          const newPositions = new Float32Array(positions.length);
           
-          // Deform tissue based on tool interaction
-          if (deformationAmount > 0) {
-            vertex.y -= deformationAmount * 0.1 * Math.random();
+          for (let i = 0; i < positions.length; i += 3) {
+            newPositions[i] = positions[i];
+            newPositions[i + 1] = positions[i + 1] - deformationAmount * 0.1 * Math.random();
+            newPositions[i + 2] = positions[i + 2];
           }
           
-          positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+          positionAttribute.copyArray(newPositions);
+          positionAttribute.needsUpdate = true;
+          geometry.computeVertexNormals();
         }
-        
-        positionAttribute.needsUpdate = true;
-        geometry.computeVertexNormals();
       }
     });
 
@@ -73,7 +72,6 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
 
   // Surgical tool component with physics
   const SurgicalToolMesh: React.FC<{ tool: SurgicalTool }> = ({ tool }) => {
-    const toolRef = useRef<THREE.Group>(null);
     const [isActive, setIsActive] = useState(false);
 
     const handleCollision = ({ target }: any) => {
@@ -96,7 +94,6 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
 
     return (
       <RigidBody 
-        ref={toolRef}
         position={tool.position}
         rotation={tool.rotation}
         type="kinematicPosition"
@@ -121,7 +118,7 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
     const particles = useRef<THREE.Vector3[]>([]);
 
     useFrame(() => {
-      if (particlesRef.current) {
+      if (particlesRef.current && particles.current.length > 0) {
         particles.current.forEach((particle, index) => {
           // Simulate blood flow
           particle.y -= 0.01;
@@ -142,9 +139,10 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
           positions[index * 3 + 2] = particle.z;
         });
 
-        if (particlesRef.current.geometry.attributes.position) {
-          particlesRef.current.geometry.attributes.position.array = positions;
-          particlesRef.current.geometry.attributes.position.needsUpdate = true;
+        const positionAttribute = particlesRef.current.geometry.getAttribute('position');
+        if (positionAttribute) {
+          positionAttribute.copyArray(positions);
+          positionAttribute.needsUpdate = true;
         }
       }
     });
@@ -176,7 +174,7 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
   };
 
   return (
-    <Physics gravity={[0, -9.81, 0]} debug={process.env.NODE_ENV === 'development'}>
+    <Physics gravity={[0, -9.81, 0]}>
       {/* Surgical tools */}
       {tools.map(tool => (
         <SurgicalToolMesh key={tool.id} tool={tool} />

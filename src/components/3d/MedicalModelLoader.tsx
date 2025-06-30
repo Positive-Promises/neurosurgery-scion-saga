@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useGLTF, useTexture } from '@react-three/drei';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface MedicalModelProps {
@@ -27,18 +28,18 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // Load GLTF model with error handling
-  const { scene, error } = useGLTF(modelPath, true);
+  const { scene } = useGLTF(modelPath);
   
-  // Load medical textures
-  const normalMap = useTexture('/textures/medical/tissue-normal.jpg');
-  const roughnessMap = useTexture('/textures/medical/tissue-roughness.jpg');
-
-  useEffect(() => {
-    if (error) {
-      setLoadingError(`Failed to load medical model: ${error.message}`);
-      console.error('Medical model loading error:', error);
-    }
-  }, [error]);
+  // Load medical textures with fallback
+  let normalMap: THREE.Texture | null = null;
+  let roughnessMap: THREE.Texture | null = null;
+  
+  try {
+    normalMap = useTexture('/textures/medical/tissue-normal.jpg');
+    roughnessMap = useTexture('/textures/medical/tissue-roughness.jpg');
+  } catch (error) {
+    console.warn('Failed to load medical textures:', error);
+  }
 
   // Apply medical-grade materials
   useEffect(() => {
@@ -72,22 +73,22 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
     }
   }, [scene, normalMap, roughnessMap, xrayMode]);
 
-  const handleClick = (event: THREE.Event) => {
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
     if (!interactive || !onInteraction) return;
     
     event.stopPropagation();
-    const intersected = event.intersected;
-    if (intersected && intersected.object.name) {
-      onInteraction(intersected.object.name);
+    const intersected = event.object;
+    if (intersected && intersected.name) {
+      onInteraction(intersected.name);
     }
   };
 
-  const handlePointerOver = (event: THREE.Event) => {
+  const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
     if (!interactive) return;
     
-    const intersected = event.intersected;
-    if (intersected && intersected.object.name) {
-      setHoveredPart(intersected.object.name);
+    const intersected = event.object;
+    if (intersected && intersected.name) {
+      setHoveredPart(intersected.name);
       document.body.style.cursor = 'pointer';
     }
   };

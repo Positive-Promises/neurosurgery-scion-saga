@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { XR, VRButton, ARButton, Controllers, Hands } from '@react-three/xr';
+import { XR, VRButton, ARButton, createXRStore } from '@react-three/xr';
 import { Environment, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import MedicalModelLoader from './MedicalModelLoader';
@@ -25,9 +25,12 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
   enableVR = true,
   enableAR = false
 }) => {
-  const [xrSupported, setXrSupported] = useState(false);
   const [currentObjective, setCurrentObjective] = useState(0);
   const sceneRef = useRef<THREE.Group>(null);
+  
+  // Create XR store
+  const vrStore = createXRStore();
+  const arStore = createXRStore();
 
   // Get model path based on level
   const getModelPath = (levelId: number): string => {
@@ -76,33 +79,15 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
     </group>
   );
 
-  // Hand tracking for precise medical interactions
-  const HandInteractions = () => (
-    <Hands 
-      modelLeft="/models/hand-left.glb"
-      modelRight="/models/hand-right.glb"
-    />
-  );
-
   return (
     <div className="relative w-full h-full">
       {/* VR/AR Entry Buttons */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         {enableVR && (
-          <VRButton 
-            sessionInit={{ 
-              requiredFeatures: ['hand-tracking', 'local-floor'],
-              optionalFeatures: ['bounded-floor']
-            }}
-          />
+          <VRButton store={vrStore} />
         )}
         {enableAR && (
-          <ARButton 
-            sessionInit={{ 
-              requiredFeatures: ['hit-test'],
-              optionalFeatures: ['dom-overlay']
-            }}
-          />
+          <ARButton store={arStore} />
         )}
       </div>
 
@@ -119,7 +104,7 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
           gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         }}
       >
-        <XR>
+        <XR store={enableVR ? vrStore : arStore}>
           {/* Lighting setup for medical visualization */}
           <ambientLight intensity={0.4} />
           <directionalLight 
@@ -148,8 +133,6 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
 
           {/* XR-specific components */}
           <XRInterface />
-          <Controllers />
-          <HandInteractions />
 
           {/* Fallback orbit controls for non-XR */}
           <OrbitControls 

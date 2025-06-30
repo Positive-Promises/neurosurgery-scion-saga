@@ -1,6 +1,8 @@
+
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
+import * as THREE from 'three';
 import { useAudioManager } from '@/hooks/useAudioManager';
 import { useSpatialAudio } from '@/hooks/useSpatialAudio';
 import XRMedicalEnvironment from './3d/XRMedicalEnvironment';
