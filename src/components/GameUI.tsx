@@ -2,7 +2,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Pause, Play, X, Volume2, VolumeX } from 'lucide-react';
-import { useAudioManager } from '@/hooks/useAudioManager';
 import EnhancedGameUI from '@/components/EnhancedGameUI';
 
 interface GameUIProps {

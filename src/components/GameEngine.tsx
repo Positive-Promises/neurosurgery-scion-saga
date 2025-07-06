@@ -143,11 +143,9 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
   return (
     <div className="fixed inset-0 bg-slate-900">
-      {/* 3D Canvas with Error Boundary */}
+      {/* Render level-specific gameplay directly */}
       <Canvas3DErrorBoundary fallback={<Canvas3DFallback />}>
-        <div className="absolute inset-0">
-          {renderLevelGameplay()}
-        </div>
+        {renderLevelGameplay()}
       </Canvas3DErrorBoundary>
 
       {/* Game UI */}

@@ -81,8 +81,8 @@ const Level1Gameplay: React.FC<Level1GameplayProps> = ({ onObjectiveComplete }) 
   };
 
   return (
-    <div className="w-full h-full relative">
-      <Canvas camera={{ position: [5, 2, 5], fov: 60 }}>
+    <div className="fixed inset-0 w-full h-full relative">
+      <Canvas camera={{ position: [5, 2, 5], fov: 60 }} className="w-full h-full">
         <ambientLight intensity={0.4} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <pointLight position={[-10, -10, -5]} intensity={0.5} />
@@ -111,7 +111,7 @@ const Level1Gameplay: React.FC<Level1GameplayProps> = ({ onObjectiveComplete }) 
       </Canvas>
 
       {/* Progress indicator */}
-      <div className="absolute top-4 left-4 bg-black/50 p-4 rounded-lg">
+      <div className="absolute top-4 left-4 bg-black/50 p-4 rounded-lg z-10">
         <h3 className="text-white font-bold mb-2">Progress</h3>
         <p className="text-cyan-400">
           Parts Identified: {labeledParts.size}/6

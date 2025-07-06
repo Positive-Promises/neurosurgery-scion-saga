@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Pause, Play, X, Volume2, VolumeX, Trophy, Target, Clock } from 'lucide-react';
-import { useAudioManager } from '@/hooks/useAudioManager';
 
 interface EnhancedGameUIProps {
   level: {
@@ -28,7 +27,11 @@ const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
   onResume,
   onExit
 }) => {
-  const { toggleMute, isMuted } = useAudioManager();
+  const [isMuted, setIsMuted] = React.useState(false);
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
 
   return (
     <>
