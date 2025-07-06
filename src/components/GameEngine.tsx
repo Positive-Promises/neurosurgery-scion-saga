@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import GameUI from './GameUI';
 import Level1Gameplay from './level-specific/Level1Gameplay';
 import Level2Gameplay from './level-specific/Level2Gameplay';
+import GameProgressIndicator from './GameProgressIndicator';
 
 interface GameEngineProps {
   level: {
@@ -53,6 +54,10 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
+  // Level 1 specific state for progress tracking
+  const [labeledParts, setLabeledParts] = useState(0);
+  const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  
   const gameStartTime = useRef(Date.now());
 
   useEffect(() => {
@@ -90,15 +95,27 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
     }, 1000);
   };
 
+  // Enhanced objective complete handler with progress tracking
+  const handleObjectiveCompleteWithTracking = (objective: string, points: number) => {
+    handleObjectiveComplete(objective, points);
+    setLabeledParts(prev => prev + 1);
+  };
+
   // Render level-specific gameplay
   const renderLevelGameplay = () => {
     switch (level.id) {
       case 1:
-        return <Level1Gameplay onObjectiveComplete={handleObjectiveComplete} />;
+        return <Level1Gameplay 
+          onObjectiveComplete={handleObjectiveCompleteWithTracking} 
+          onHoverChange={setHoveredPart}
+        />;
       case 2:
         return <Level2Gameplay onObjectiveComplete={handleObjectiveComplete} />;
       default:
-        return <Level1Gameplay onObjectiveComplete={handleObjectiveComplete} />;
+        return <Level1Gameplay 
+          onObjectiveComplete={handleObjectiveCompleteWithTracking}
+          onHoverChange={setHoveredPart}
+        />;
     }
   };
 
@@ -143,10 +160,35 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
   return (
     <div className="fixed inset-0 bg-slate-900">
-      {/* Render level-specific gameplay directly */}
+      {/* 3D Canvas with Error Boundary */}
       <Canvas3DErrorBoundary fallback={<Canvas3DFallback />}>
-        {renderLevelGameplay()}
+        <Canvas camera={{ position: [5, 2, 5], fov: 60 }} className="w-full h-full">
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <pointLight position={[-10, -10, -5]} intensity={0.5} />
+          
+          <OrbitControls 
+            enablePan={true} 
+            enableZoom={true} 
+            enableRotate={true}
+            maxDistance={10}
+            minDistance={2}
+          />
+          
+          <Suspense fallback={null}>
+            {renderLevelGameplay()}
+          </Suspense>
+        </Canvas>
       </Canvas3DErrorBoundary>
+
+      {/* Level-specific progress indicator */}
+      {level.id === 1 && (
+        <GameProgressIndicator 
+          labeledParts={labeledParts}
+          totalParts={6}
+          hoveredPart={hoveredPart}
+        />
+      )}
 
       {/* Game UI */}
       <GameUI
