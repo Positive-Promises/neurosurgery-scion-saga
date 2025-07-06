@@ -7,7 +7,6 @@ import { Provider } from 'react-redux';
 import { store } from '@/store/gameStore';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import MedicalScraper from "./pages/MedicalScraper";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +19,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/medical-scraper" element={<MedicalScraper />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

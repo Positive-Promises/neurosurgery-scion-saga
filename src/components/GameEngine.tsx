@@ -6,7 +6,8 @@ import GameUI from './GameUI';
 import Level1Gameplay from './level-specific/Level1Gameplay';
 import Level2Gameplay from './level-specific/Level2Gameplay';
 import GameProgressIndicator from './GameProgressIndicator';
-import MedicalFactsPanel from './MedicalFactsPanel';
+import BrainEducationPanel from './BrainEducationPanel';
+import { BrainRegion, BRAIN_REGIONS } from '@/data/brainAnatomy';
 
 interface GameEngineProps {
   level: {
@@ -58,6 +59,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
   // Level 1 specific state for progress tracking
   const [labeledParts, setLabeledParts] = useState(0);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  const [selectedBrainRegion, setSelectedBrainRegion] = useState<BrainRegion | null>(null);
   
   const gameStartTime = useRef(Date.now());
 
@@ -100,6 +102,13 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
   const handleObjectiveCompleteWithTracking = (objective: string, points: number) => {
     handleObjectiveComplete(objective, points);
     setLabeledParts(prev => prev + 1);
+    
+    // Find brain region for education panel
+    const regionName = objective.replace('Identify ', '');
+    const region = BRAIN_REGIONS.find(r => r.name === regionName);
+    if (region) {
+      setSelectedBrainRegion(region);
+    }
   };
 
   // Render level-specific gameplay
@@ -187,12 +196,15 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         <>
           <GameProgressIndicator 
             labeledParts={labeledParts}
-            totalParts={6}
+            totalParts={BRAIN_REGIONS.length}
             hoveredPart={hoveredPart}
           />
-          <MedicalFactsPanel 
-            category="neurology"
-            className="absolute top-4 right-20 w-80 max-h-96 overflow-hidden"
+          <BrainEducationPanel
+            selectedRegion={selectedBrainRegion}
+            hoveredRegion={null}
+            identifiedCount={labeledParts}
+            totalRegions={BRAIN_REGIONS.length}
+            className="absolute top-4 right-4 w-80 max-h-96 overflow-auto"
           />
         </>
       )}
