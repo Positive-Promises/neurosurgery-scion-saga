@@ -1,22 +1,19 @@
 
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import PlayerStats from '@/components/PlayerStats';
 import GameLevel from '@/components/GameLevel';
 import LevelDetailsModal from '@/components/LevelDetailsModal';
 import GameLauncher from '@/components/GameLauncher';
 import { GAME_LEVELS } from '@/data/gameLevels';
+import { RootState } from '@/store/gameStore';
 
 const NeurosurgicalScion = () => {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [showLevelDetails, setShowLevelDetails] = useState(false);
   const [showGameLauncher, setShowGameLauncher] = useState(false);
-  const [playerStats, setPlayerStats] = useState({
-    totalXP: 0,
-    level: 1,
-    completedLevels: 0,
-    achievements: [],
-    surgicalRank: "Medical Student"
-  });
+  // Get player stats from Redux store
+  const playerStats = useSelector((state: RootState) => state.game.player);
 
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
