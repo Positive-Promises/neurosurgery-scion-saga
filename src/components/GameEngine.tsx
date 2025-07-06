@@ -6,6 +6,7 @@ import GameUI from './GameUI';
 import Level1Gameplay from './level-specific/Level1Gameplay';
 import Level2Gameplay from './level-specific/Level2Gameplay';
 import GameProgressIndicator from './GameProgressIndicator';
+import MedicalFactsPanel from './MedicalFactsPanel';
 
 interface GameEngineProps {
   level: {
@@ -183,11 +184,17 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
       {/* Level-specific progress indicator */}
       {level.id === 1 && (
-        <GameProgressIndicator 
-          labeledParts={labeledParts}
-          totalParts={6}
-          hoveredPart={hoveredPart}
-        />
+        <>
+          <GameProgressIndicator 
+            labeledParts={labeledParts}
+            totalParts={6}
+            hoveredPart={hoveredPart}
+          />
+          <MedicalFactsPanel 
+            category="neurology"
+            className="absolute top-4 right-20 w-80 max-h-96 overflow-hidden"
+          />
+        </>
       )}
 
       {/* Game UI */}

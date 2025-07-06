@@ -7,6 +7,9 @@ import LevelDetailsModal from '@/components/LevelDetailsModal';
 import GameLauncher from '@/components/GameLauncher';
 import { GAME_LEVELS } from '@/data/gameLevels';
 import { RootState } from '@/store/gameStore';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Database, BookOpen, ExternalLink, Brain } from 'lucide-react';
 
 const NeurosurgicalScion = () => {
   const [selectedLevel, setSelectedLevel] = useState(null);
@@ -52,6 +55,45 @@ const NeurosurgicalScion = () => {
             playerStats={playerStats} 
             totalLevels={GAME_LEVELS.length} 
           />
+
+          {/* Medical Data Sources Card */}
+          <Card className="mb-6 bg-gradient-to-r from-blue-900/50 to-indigo-900/50 border-blue-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-white">
+                <Brain className="w-6 h-6 text-blue-400" />
+                <span>Medical Knowledge Sources</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+                <div className="text-blue-100">
+                  <p className="mb-2">
+                    Enhance your learning with real medical data from trusted sources:
+                  </p>
+                  <p className="text-sm text-blue-200">
+                    PubMed, ScienceDirect, Wikipedia Medical, Wikibooks & more
+                  </p>
+                </div>
+                <div className="flex space-x-3">
+                  <Button 
+                    onClick={() => window.open('/medical-scraper', '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Database className="w-4 h-4 mr-2" />
+                    Medical Scraper
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.open('https://pubmed.ncbi.nlm.nih.gov', '_blank')}
+                    className="border-blue-400 text-blue-300 hover:bg-blue-900/50"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    PubMed
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Game Levels Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
