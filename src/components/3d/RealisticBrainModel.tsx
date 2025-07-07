@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -25,7 +26,6 @@ const RealisticBrainModel: React.FC<RealisticBrainModelProps> = ({
       case 'elongated':
         return <cylinderGeometry args={[0.8, 1.2, 1.5, 12]} />;
       case 'irregular':
-        // More complex shape for irregular regions
         return <dodecahedronGeometry args={[1, 1]} />;
       default:
         return <sphereGeometry args={[1, 20, 16]} />;
@@ -100,7 +100,6 @@ const RealisticBrainModel: React.FC<RealisticBrainModelProps> = ({
                 color="#ffffff"
                 anchorX="center"
                 anchorY="middle"
-                font="/fonts/roboto-regular.woff"
                 maxWidth={2}
                 textAlign="center"
               >

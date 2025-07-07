@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
@@ -48,9 +49,7 @@ class Canvas3DErrorBoundary extends React.Component<
 }
 
 const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) => {
-  // Simplified audio - no complex hooks blocking startup
   const [audioEnabled, setAudioEnabled] = useState(true);
-  
   const [gameState, setGameState] = useState<'loading' | 'playing' | 'paused' | 'completed'>('loading');
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -64,10 +63,9 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
   const gameStartTime = useRef(Date.now());
 
   useEffect(() => {
-    // Start game immediately - no audio blocking
     const startTimer = setTimeout(() => {
       setGameState('playing');
-    }, 500); // Reduced from 2000ms to 500ms
+    }, 500);
 
     return () => {
       clearTimeout(startTimer);
@@ -204,7 +202,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
             hoveredRegion={null}
             identifiedCount={labeledParts}
             totalRegions={BRAIN_REGIONS.length}
-            className="absolute top-4 right-4 w-80 max-h-96 overflow-auto"
+            className="absolute top-4 left-4 w-80 max-h-96 overflow-auto"
           />
         </>
       )}
