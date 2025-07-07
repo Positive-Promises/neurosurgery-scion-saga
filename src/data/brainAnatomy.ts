@@ -19,8 +19,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Frontal Lobe',
     shortDescription: 'Planning, reasoning, and motor control',
     fullDescription: 'The frontal lobes lie directly behind the forehead. When you plan a schedule, imagine the future, or use reasoned arguments, these two lobes do much of the work. They act as short-term storage sites, allowing one idea to be kept in mind while other ideas are considered.',
-    position: [0, 0.8, 1.2],
-    color: '#FF6B6B', // Orange-red as in typical brain diagrams
+    position: [-0.5, 1.2, 1.0],
+    color: '#FF8C42', // Orange matching uploaded brain image
     functions: [
       'Executive functions',
       'Planning and decision making',
@@ -38,8 +38,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Parietal Lobe',
     shortDescription: 'Sensory processing and spatial awareness',
     fullDescription: 'When you enjoy a good meal—the taste, smell, and texture of the food—the parietal lobes are at work. The parietal lobes also support reading and arithmetic. The somatosensory cortex receives information about temperature, taste, touch, and movement.',
-    position: [-0.3, 1.0, -0.2],
-    color: '#4ECDC4', // Teal-green
+    position: [0.5, 1.2, 1.0],
+    color: '#4CAF50', // Green matching uploaded brain image
     functions: [
       'Sensory integration',
       'Spatial processing',
@@ -57,8 +57,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Temporal Lobe',
     shortDescription: 'Memory, hearing, and language',
     fullDescription: 'The temporal lobes lie in front of the visual areas and nest under the parietal and frontal lobes. Whether you appreciate symphonies or rock music, your brain responds through the activity of these lobes. They play a crucial role in forming and retrieving memories.',
-    position: [-1.8, 0.2, 0.3],
-    color: '#9B59B6', // Purple
+    position: [-1.5, 0.5, 0.2],
+    color: '#9C27B0', // Purple matching uploaded brain image
     functions: [
       'Auditory processing',
       'Memory formation and retrieval',
@@ -76,8 +76,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Occipital Lobe',
     shortDescription: 'Visual processing center',
     fullDescription: 'Two areas at the back of the brain process images from the eyes and link that information with images stored in memory. The occipital lobes are essential for vision. Damage to the occipital lobes can cause blindness.',
-    position: [0, 0.6, -2.2],
-    color: '#F39C12', // Orange-yellow
+    position: [0, 0.8, -1.8],
+    color: '#E91E63', // Pink/Magenta matching uploaded brain image
     functions: [
       'Visual processing',
       'Image recognition',
@@ -95,8 +95,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Cerebellum',
     shortDescription: 'Balance, coordination, and motor learning',
     fullDescription: 'The cerebellum coordinates movement and is involved in learned movements. When you play the piano or hit a tennis ball, you are activating the cerebellum. It\'s essential for balance and fine motor control.',
-    position: [0, -1.2, -1.5],
-    color: '#E74C3C', // Red
+    position: [0, -1.0, -1.2],
+    color: '#FFC107', // Yellow matching uploaded brain image
     functions: [
       'Motor coordination',
       'Balance and posture',
@@ -114,8 +114,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
     name: 'Brainstem',
     shortDescription: 'Vital functions and consciousness',
     fullDescription: 'The brainstem controls the body\'s vital functions such as respiration and heart rate. The uppermost part controls some reflex actions and is part of the circuit involved in eye movements and other voluntary movements.',
-    position: [0, -0.8, 0.2],
-    color: '#95A5A6', // Gray-blue
+    position: [0, -0.5, 0.0],
+    color: '#90A4AE', // Light gray matching uploaded brain image
     functions: [
       'Breathing control',
       'Heart rate regulation',

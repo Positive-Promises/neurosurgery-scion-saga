@@ -19,18 +19,16 @@ const RealisticBrainModel: React.FC<RealisticBrainModelProps> = ({
 
   // Create anatomically accurate brain region geometry
   const createRegionGeometry = (region: BrainRegion) => {
-    const [width, height, depth] = region.size;
-    
     switch (region.shape) {
       case 'ellipsoid':
-        return <sphereGeometry args={[1, 16, 12]} />;
+        return <sphereGeometry args={[1, 20, 16]} />;
       case 'elongated':
-        return <boxGeometry args={[width * 0.5, height * 0.5, depth * 0.5]} />;
+        return <cylinderGeometry args={[0.8, 1.2, 1.5, 12]} />;
       case 'irregular':
-        // Use a slightly irregular sphere for complex shapes
-        return <sphereGeometry args={[0.9, 12, 8]} />;
+        // More complex shape for irregular regions
+        return <dodecahedronGeometry args={[1, 1]} />;
       default:
-        return <sphereGeometry args={[1, 16, 12]} />;
+        return <sphereGeometry args={[1, 20, 16]} />;
     }
   };
 
@@ -132,35 +130,46 @@ const RealisticBrainModel: React.FC<RealisticBrainModelProps> = ({
         );
       })}
 
-      {/* Connecting structures - simplified corpus callosum */}
-      <mesh position={[0, 0.2, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.1, 0.1, 2, 8]} />
+      {/* Connecting structures - corpus callosum */}
+      <mesh position={[0, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.15, 0.15, 2.5, 8]} />
         <meshPhysicalMaterial
           color="#FFFFFF"
           transparent
-          opacity={0.3}
-          roughness={0.2}
+          opacity={0.4}
+          roughness={0.3}
           metalness={0.1}
         />
       </mesh>
 
-      {/* Brain surface texture indicators - sulci and gyri */}
-      {Array.from({ length: 8 }).map((_, i) => (
+      {/* Brain hemisphere separation */}
+      <mesh position={[0, 0.8, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[4, 3]} />
+        <meshPhysicalMaterial
+          color="#333333"
+          transparent
+          opacity={0.1}
+          roughness={0.8}
+        />
+      </mesh>
+
+      {/* Brain surface convolutions - sulci and gyri */}
+      {Array.from({ length: 12 }).map((_, i) => (
         <mesh
           key={`sulcus-${i}`}
           position={[
-            Math.sin(i * Math.PI / 4) * 2.2,
-            Math.cos(i * Math.PI / 6) * 0.5,
-            Math.cos(i * Math.PI / 4) * 1.5
+            Math.sin(i * Math.PI / 6) * (1.8 + Math.random() * 0.5),
+            Math.cos(i * Math.PI / 8) * 0.8 + 0.5,
+            Math.cos(i * Math.PI / 6) * (1.2 + Math.random() * 0.3)
           ]}
-          rotation={[Math.random() * 0.3, Math.random() * 0.3, Math.random() * 0.3]}
+          rotation={[Math.random() * 0.4, Math.random() * 0.4, Math.random() * 0.4]}
         >
-          <cylinderGeometry args={[0.02, 0.02, 0.8, 6]} />
+          <cylinderGeometry args={[0.03, 0.03, 1.2, 6]} />
           <meshPhysicalMaterial
-            color="#8B7D6B"
+            color="#D4B5A0"
             transparent
-            opacity={0.4}
-            roughness={0.8}
+            opacity={0.3}
+            roughness={0.9}
           />
         </mesh>
       ))}
@@ -172,7 +181,6 @@ const RealisticBrainModel: React.FC<RealisticBrainModelProps> = ({
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/roboto-bold.woff"
       >
         Human Brain Anatomy
       </Text>
