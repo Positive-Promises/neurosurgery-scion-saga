@@ -1,13 +1,15 @@
-
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import GameUI from './GameUI';
+import { Button } from '@/components/ui/button';
+import { Trophy } from 'lucide-react';
 import Level1Gameplay from './level-specific/Level1Gameplay';
 import Level2Gameplay from './level-specific/Level2Gameplay';
-import GameProgressIndicator from './GameProgressIndicator';
-import BrainEducationPanel from './BrainEducationPanel';
+import MedicalDashboardLayout from './layout/MedicalDashboardLayout';
+import ObjectivesPanel from './game/ObjectivesPanel';
+import EnhancedBrainEducationPanel from './game/EnhancedBrainEducationPanel';
+import ProfessionalTopBar from './game/ProfessionalTopBar';
 import { BrainRegion, BRAIN_REGIONS } from '@/data/brainAnatomy';
 
 interface GameEngineProps {
@@ -167,7 +169,37 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900">
+    <MedicalDashboardLayout
+      topBar={
+        <ProfessionalTopBar
+          level={level}
+          score={score}
+          gameState={gameState}
+          audioEnabled={audioEnabled}
+          onPause={() => setGameState('paused')}
+          onResume={() => setGameState('playing')}
+          onExit={onExit}
+          onToggleAudio={() => setAudioEnabled(!audioEnabled)}
+        />
+      }
+      leftPanel={
+        <ObjectivesPanel
+          level={level}
+          score={score}
+          progress={progress}
+          identifiedCount={labeledParts}
+          totalRegions={BRAIN_REGIONS.length}
+        />
+      }
+      rightPanel={
+        <EnhancedBrainEducationPanel
+          selectedRegion={selectedBrainRegion}
+          hoveredRegion={null}
+          identifiedCount={labeledParts}
+          totalRegions={BRAIN_REGIONS.length}
+        />
+      }
+    >
       {/* 3D Canvas with Error Boundary */}
       <Canvas3DErrorBoundary fallback={<Canvas3DFallback />}>
         <Canvas camera={{ position: [5, 2, 5], fov: 60 }} className="w-full h-full">
@@ -189,49 +221,36 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
         </Canvas>
       </Canvas3DErrorBoundary>
 
-      {/* Level-specific progress indicator */}
-      {level.id === 1 && (
-        <>
-          <GameProgressIndicator 
-            labeledParts={labeledParts}
-            totalParts={BRAIN_REGIONS.length}
-            hoveredPart={hoveredPart}
-          />
-          <BrainEducationPanel
-            selectedRegion={selectedBrainRegion}
-            hoveredRegion={null}
-            identifiedCount={labeledParts}
-            totalRegions={BRAIN_REGIONS.length}
-            className="absolute top-4 left-4 w-80 max-h-96 overflow-auto"
-          />
-        </>
+      {/* Game State Overlays */}
+      {gameState === 'paused' && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-lg p-8 text-center border border-slate-600">
+            <h2 className="text-2xl font-bold text-white mb-4">Game Paused</h2>
+            <div className="space-x-4">
+              <Button onClick={() => setGameState('playing')} className="bg-cyan-600 hover:bg-cyan-700">
+                Resume
+              </Button>
+              <Button onClick={onExit} variant="outline">
+                Exit
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Game UI */}
-      <GameUI
-        level={level}
-        score={score}
-        progress={progress}
-        gameState={gameState}
-        onPause={() => setGameState('paused')}
-        onResume={() => setGameState('playing')}
-        onExit={onExit}
-      />
-
-      {/* Audio Toggle */}
-      <div className="absolute top-4 right-4 z-10">
-        <button
-          onClick={() => setAudioEnabled(!audioEnabled)}
-          className={`px-4 py-2 rounded transition-colors ${
-            audioEnabled 
-              ? 'bg-green-600 hover:bg-green-700' 
-              : 'bg-gray-600 hover:bg-gray-700'
-          } text-white`}
-        >
-          Audio: {audioEnabled ? 'ON' : 'OFF'}
-        </button>
-      </div>
-    </div>
+      {gameState === 'completed' && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-lg p-8 text-center border border-slate-600">
+            <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Level Complete!</h2>
+            <p className="text-cyan-400 text-lg mb-4">Final Score: {score.toLocaleString()}</p>
+            <Button onClick={onExit} className="bg-cyan-600 hover:bg-cyan-700">
+              Continue
+            </Button>
+          </div>
+        </div>
+      )}
+    </MedicalDashboardLayout>
   );
 };
 
