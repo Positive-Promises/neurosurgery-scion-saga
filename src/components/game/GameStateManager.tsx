@@ -1,5 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
+import { Level } from '../GameLevel';
+import { BrainRegion } from '../../data/brainAnatomy';
 
 export interface GameState {
   audioEnabled: boolean;
@@ -9,10 +11,10 @@ export interface GameState {
   error: string | null;
   labeledParts: number;
   hoveredPart: string | null;
-  selectedBrainRegion: any;
+  selectedBrainRegion: BrainRegion | null;
 }
 
-export const useGameState = (level: any) => {
+export const useGameState = (level: Level) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [gameState, setGameState] = useState<'loading' | 'playing' | 'paused' | 'completed'>('loading');
   const [score, setScore] = useState(0);
@@ -20,7 +22,7 @@ export const useGameState = (level: any) => {
   const [error, setError] = useState<string | null>(null);
   const [labeledParts, setLabeledParts] = useState(0);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
-  const [selectedBrainRegion, setSelectedBrainRegion] = useState<any>(null);
+  const [selectedBrainRegion, setSelectedBrainRegion] = useState<BrainRegion | null>(null);
   
   const gameStartTime = useRef(Date.now());
 

@@ -1,15 +1,22 @@
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, lazy } from 'react';
 import { useSelector } from 'react-redux';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { GameErrorBoundary, Canvas3DFallback } from './GameErrorBoundary';
-import Level1Gameplay from '../level-specific/Level1Gameplay';
-import Level2Gameplay from '../level-specific/Level2Gameplay';
-import Level1Gameplay2D from '../level-specific/Level1Gameplay2D';
-import Level2Gameplay2D from '../level-specific/Level2Gameplay2D';
 import { RootState } from '@/store/gameStore';
 import { WEBGL } from '@/utils/webgl';
+
+const Level1Gameplay = lazy(() => import('../level-specific/Level1Gameplay'));
+const Level2Gameplay = lazy(() => import('../level-specific/Level2Gameplay'));
+const Level1Gameplay2D = lazy(() => import('../level-specific/Level1Gameplay2D'));
+const Level2Gameplay2D = lazy(() => import('../level-specific/Level2Gameplay2D'));
+
+const LoadingFallback = () => (
+  <div className="w-full h-full flex items-center justify-center bg-gray-900">
+    <div className="text-white text-xl">Loading Level...</div>
+  </div>
+);
 
 const WebGLNotSupported = () => (
   <div className="w-full h-full flex flex-col items-center justify-center bg-red-900/50 text-white p-8">
@@ -81,15 +88,21 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
   if (viewMode === '2D') {
     return (
-      <div className="w-full h-full">
-        {renderLevelGameplay2D()}
-      </div>
+      <Suspense fallback={<LoadingFallback />}>
+        <div className="w-full h-full">
+          {renderLevelGameplay2D()}
+        </div>
+      </Suspense>
     );
   }
 
   // For Level 2, the component provides its own canvas, so we render it directly.
   if (level.id === 2) {
-    return renderLevelGameplay3D();
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        {renderLevelGameplay3D()}
+      </Suspense>
+    );
   }
 
   return (
@@ -107,7 +120,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           minDistance={2}
         />
         
-        <Suspense fallback={null}>
+        <Suspense fallback={<Canvas3DFallback />}>
           {renderLevelGameplay3D()}
         </Suspense>
       </Canvas>
