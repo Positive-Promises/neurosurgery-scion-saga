@@ -1,8 +1,12 @@
 
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pause, Play, X, Volume2, VolumeX, Trophy, Zap } from 'lucide-react';
+import { Pause, Play, X, Volume2, VolumeX, Trophy, Zap, View } from 'lucide-react';
+import { RootState, AppDispatch } from '@/store/gameStore';
+import { toggleViewMode } from '@/store/gameStore';
+
 
 interface ProfessionalTopBarProps {
   level: {
@@ -28,6 +32,13 @@ const ProfessionalTopBar: React.FC<ProfessionalTopBarProps> = ({
   onExit,
   onToggleAudio
 }) => {
+  const dispatch: AppDispatch = useDispatch();
+  const viewMode = useSelector((state: RootState) => state.game.viewMode);
+
+  const handleToggleViewMode = () => {
+    dispatch(toggleViewMode());
+  };
+
   return (
     <div className="flex items-center justify-between h-full px-6">
       {/* Left Section - Level Info */}
@@ -51,6 +62,15 @@ const ProfessionalTopBar: React.FC<ProfessionalTopBarProps> = ({
 
       {/* Right Section - Controls */}
       <div className="flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleToggleViewMode}
+          className="text-white hover:bg-white/10 transition-colors"
+        >
+          <View className="w-5 h-5 mr-2" />
+          {viewMode}
+        </Button>
         <Button
           variant="ghost"
           size="sm"

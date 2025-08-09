@@ -22,6 +22,7 @@ interface GameState {
   player: PlayerState;
   levels: GameLevel[];
   currentLevel: number | null;
+  viewMode: '2D' | '3D';
   gameSession: {
     score: number;
     startTime: number;
@@ -48,6 +49,7 @@ const initialState: GameState = {
     achievements: []
   })),
   currentLevel: null,
+  viewMode: '3D',
   gameSession: null
 };
 
@@ -55,6 +57,9 @@ const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
+    toggleViewMode: (state) => {
+      state.viewMode = state.viewMode === '3D' ? '2D' : '3D';
+    },
     startLevel: (state, action: PayloadAction<{ levelId: number; objectives: string[] }>) => {
       state.currentLevel = action.payload.levelId;
       state.gameSession = {
@@ -105,12 +110,13 @@ const gameSlice = createSlice({
   }
 });
 
-export const { 
-  startLevel, 
-  completeObjective, 
-  completeLevel, 
-  addAchievement, 
-  resetGame 
+export const {
+  toggleViewMode,
+  startLevel,
+  completeObjective,
+  completeLevel,
+  addAchievement,
+  resetGame
 } = gameSlice.actions;
 
 export const store = configureStore({
