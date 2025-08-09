@@ -29,27 +29,13 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [useplaceholder, setUsePlaceholder] = useState(false);
 
-  // Try to load GLTF model with error handling
-  let scene: THREE.Group | null = null;
-  try {
-    const gltfResult = useGLTF(modelPath);
-    scene = gltfResult.scene;
-  } catch (error) {
-    console.warn('GLTF loading failed, using placeholder:', error);
+  // Load models and textures at the top level
+  const { scene } = useGLTF(modelPath, undefined, () => {
     setLoadingError('Failed to load 3D model');
     setUsePlaceholder(true);
-  }
-  
-  // Load medical textures with fallback
-  let normalMap: THREE.Texture | null = null;
-  let roughnessMap: THREE.Texture | null = null;
-  
-  try {
-    normalMap = useTexture('/textures/medical/tissue-normal.jpg');
-    roughnessMap = useTexture('/textures/medical/tissue-roughness.jpg');
-  } catch (error) {
-    console.warn('Failed to load medical textures:', error);
-  }
+  });
+  const normalMap = useTexture('/textures/medical/tissue-normal.jpg');
+  const roughnessMap = useTexture('/textures/medical/tissue-roughness.jpg');
 
   // Apply medical-grade materials
   useEffect(() => {

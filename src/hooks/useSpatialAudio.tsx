@@ -1,6 +1,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { Vector3, Euler } from 'three';
 
 interface SpatialAudioTrack {
   id: string;
@@ -17,6 +17,10 @@ interface AudioListener {
   rotation: [number, number, number];
 }
 
+interface WindowWithAudioContext extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 export const useSpatialAudio = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const listenerRef = useRef<AudioListener>({ position: [0, 0, 0], rotation: [0, 0, 0] });
@@ -31,7 +35,12 @@ export const useSpatialAudio = () => {
   // Initialize Web Audio API
   useEffect(() => {
     try {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const TheAudioContext = window.AudioContext || (window as WindowWithAudioContext).webkitAudioContext;
+      if (TheAudioContext) {
+        audioContextRef.current = new TheAudioContext();
+      } else {
+        throw new Error('AudioContext not supported');
+      }
       
       // Set up 3D audio listener
       const listener = audioContextRef.current.listener;
@@ -187,9 +196,9 @@ export const useSpatialAudio = () => {
       listener.positionZ.setValueAtTime(position[2], audioContextRef.current.currentTime);
 
       // Calculate forward and up vectors from rotation
-      const forward = new THREE.Vector3(0, 0, -1);
-      const up = new THREE.Vector3(0, 1, 0);
-      const euler = new THREE.Euler(rotation[0], rotation[1], rotation[2]);
+      const forward = new Vector3(0, 0, -1);
+      const up = new Vector3(0, 1, 0);
+      const euler = new Euler(rotation[0], rotation[1], rotation[2]);
       forward.applyEuler(euler);
       up.applyEuler(euler);
 

@@ -5,23 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Lock, Play, BookOpen } from 'lucide-react';
 
+export interface Level {
+  id: number;
+  title: string;
+  subtitle: string;
+  difficulty: string;
+  locked: boolean;
+  completed: boolean;
+  description: string;
+  objectives: string[];
+  boss: string;
+  xp: number;
+  estimatedTime: string;
+  surgicalFocus: string;
+}
+
 interface GameLevelProps {
-  level: {
-    id: number;
-    title: string;
-    subtitle: string;
-    difficulty: string;
-    locked: boolean;
-    completed: boolean;
-    description: string;
-    objectives: string[];
-    boss: string;
-    xp: number;
-    estimatedTime: string;
-    surgicalFocus: string;
-  };
-  onLevelSelect: (level: any) => void;
-  onShowDetails: (level: any) => void;
+  level: Level;
+  onLevelSelect: (level: Level) => void;
+  onShowDetails: (level: Level) => void;
 }
 
 const GameLevel: React.FC<GameLevelProps> = ({ level, onLevelSelect, onShowDetails }) => {

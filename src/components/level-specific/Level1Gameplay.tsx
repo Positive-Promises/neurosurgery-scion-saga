@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Text } from '@react-three/drei';
-import RealisticBrainModel from '@/components/3d/RealisticBrainModel';
-import { BrainRegion, BRAIN_REGIONS } from '@/data/brainAnatomy';
+import React from 'react';
+import { Html } from '@react-three/drei';
+import BioDigitalModel from '@/components/3d/BioDigitalModel';
+import { GameErrorBoundary, Canvas3DFallback } from '../game/GameErrorBoundary';
 
 interface Level1GameplayProps {
   onObjectiveComplete: (objective: string, points: number) => void;
@@ -9,74 +9,22 @@ interface Level1GameplayProps {
 }
 
 const Level1Gameplay: React.FC<Level1GameplayProps> = ({ onObjectiveComplete, onHoverChange }) => {
-  const [labeledRegions, setLabeledRegions] = useState<Set<string>>(new Set());
-  const [selectedRegion, setSelectedRegion] = useState<BrainRegion | null>(null);
-
-  const handleRegionClick = (region: BrainRegion) => {
-    if (!labeledRegions.has(region.id)) {
-      setLabeledRegions(prev => new Set(prev.add(region.id)));
-      setSelectedRegion(region);
-      onObjectiveComplete(`Identify ${region.name}`, 100);
-      
-      // Trigger completion check
-      if (labeledRegions.size + 1 >= BRAIN_REGIONS.length) {
-        setTimeout(() => {
-          onObjectiveComplete('Complete neuroanatomical identification', 500);
-        }, 1000);
-      }
-    }
-  };
-
-  const handleRegionHover = (region: BrainRegion | null) => {
-    onHoverChange?.(region?.name || null);
-  };
+  // The interactivity is now handled within the BioDigital iframe.
+  // The original logic for tracking identified regions is removed for now.
+  // We can re-introduce objectives based on iframe events later if needed.
 
   return (
-    <>
-      {/* Realistic Brain Model */}
-      <RealisticBrainModel
-        onRegionClick={handleRegionClick}
-        onRegionHover={handleRegionHover}
-        labeledRegions={labeledRegions}
-      />
-
-      {/* Educational floating text */}
-      <Text
-        position={[0, -3, 0]}
-        fontSize={0.3}
-        color="#ffffff"
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={8}
-        textAlign="center"
+    <GameErrorBoundary fallback={<Canvas3DFallback />}>
+      {/* BioDigital Brain Model */}
+      <Html
+        transform
+        position={[0, 0, 0]}
+        scale={[0.1, 0.1, 0.1]}
+        style={{ width: '1024px', height: '1024px' }}
       >
-        Click on brain regions to identify them
-      </Text>
-
-      {/* Progress indicator */}
-      <Text
-        position={[3, 2, 0]}
-        fontSize={0.25}
-        color="#00ff88"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Progress: {labeledRegions.size}/{BRAIN_REGIONS.length}
-      </Text>
-
-      {/* NINDS Citation */}
-      <Text
-        position={[0, -3.8, 0]}
-        fontSize={0.15}
-        color="#888888"
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={10}
-        textAlign="center"
-      >
-        Anatomical information sourced from NINDS Brain Basics
-      </Text>
-    </>
+        <BioDigitalModel modelId="production/maleAdult/male_region_brain_20" />
+      </Html>
+    </GameErrorBoundary>
   );
 };
 

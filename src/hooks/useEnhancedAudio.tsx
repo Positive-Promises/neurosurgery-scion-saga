@@ -8,6 +8,10 @@ interface EnhancedAudioOptions {
   medicalContext?: string;
 }
 
+interface WindowWithAudioContext extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 export const useEnhancedAudio = (options: EnhancedAudioOptions = {}) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -15,8 +19,13 @@ export const useEnhancedAudio = (options: EnhancedAudioOptions = {}) => {
 
   useEffect(() => {
     try {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      setIsInitialized(true);
+      const TheAudioContext = window.AudioContext || (window as WindowWithAudioContext).webkitAudioContext;
+      if (TheAudioContext) {
+        audioContextRef.current = new TheAudioContext();
+        setIsInitialized(true);
+      } else {
+        throw new Error('AudioContext not supported');
+      }
     } catch (error) {
       console.warn('Enhanced audio not supported:', error);
     }

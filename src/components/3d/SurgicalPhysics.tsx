@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, Physics, CuboidCollider } from '@react-three/rapier';
-import * as THREE from 'three';
+import { Group, Mesh, BufferGeometry, Color, Points, Vector3 } from 'three';
 
 interface SurgicalTool {
   id: string;
@@ -27,13 +27,13 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
 
   // Soft tissue physics simulation
   const SoftTissue: React.FC<{ position: [number, number, number]; name: string }> = ({ position, name }) => {
-    const meshRef = useRef<THREE.Mesh>(null);
+    const meshRef = useRef<Mesh>(null);
     const deformationAmount = tissueDeformation.get(name) || 0;
 
     useFrame(() => {
       if (meshRef.current && deformationAmount > 0) {
         // Simulate tissue deformation
-        const geometry = meshRef.current.geometry as THREE.BufferGeometry;
+        const geometry = meshRef.current.geometry as BufferGeometry;
         const positionAttribute = geometry.getAttribute('position');
         
         // Apply deformation based on surgical interaction
@@ -71,13 +71,15 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
     );
   };
 
+import { CollisionEnterPayload } from '@react-three/rapier';
+
   // Surgical tool component with physics
   const SurgicalToolMesh: React.FC<{ tool: SurgicalTool }> = ({ tool }) => {
     const [isActive, setIsActive] = useState(false);
 
-    const handleCollision = ({ target }: any) => {
-      if (target.rigidBodyObject) {
-        const targetName = target.rigidBodyObject.name;
+    const handleCollision = (payload: CollisionEnterPayload) => {
+      const targetName = payload.colliderObject?.name;
+      if (targetName) {
         onToolInteraction(tool.id, targetName);
         
         // Simulate haptic feedback
@@ -104,7 +106,7 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
         <mesh>
           <cylinderGeometry args={[0.05, 0.05, 1]} />
           <meshStandardMaterial 
-            color={isActive ? "#ff4444" : "#888888"}
+            color={isActive ? new Color("#ff4444") : new Color("#888888")}
             metalness={0.8}
             roughness={0.2}
           />
@@ -115,8 +117,8 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
 
   // Blood flow simulation
   const BloodFlow: React.FC = () => {
-    const particlesRef = useRef<THREE.Points>(null);
-    const particles = useRef<THREE.Vector3[]>([]);
+    const particlesRef = useRef<Points>(null);
+    const particles = useRef<Vector3[]>([]);
 
     useFrame(() => {
       if (particlesRef.current && particles.current.length > 0) {
@@ -152,7 +154,7 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
     // Initialize particles
     React.useEffect(() => {
       particles.current = Array.from({ length: 100 }, () => 
-        new THREE.Vector3(
+        new Vector3(
           (Math.random() - 0.5) * 4,
           Math.random() * 4,
           (Math.random() - 0.5) * 4
