@@ -8,8 +8,8 @@ import { BrainModel, SpineModel, DefaultAnatomyModel } from './PlaceholderModels
 interface MedicalModelProps {
   modelPath: string;
   levelId: number;
-  interactive?: boolean;
-  onInteraction?: (partName: string) => void;
+  isInteractive?: boolean;
+  onModelInteraction?: (partName: string) => void;
   highlightedParts?: string[];
   crossSection?: boolean;
   xrayMode?: boolean;
@@ -18,8 +18,8 @@ interface MedicalModelProps {
 const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   modelPath,
   levelId,
-  interactive = true,
-  onInteraction,
+  isInteractive = true,
+  onModelInteraction,
   highlightedParts = [],
   crossSection = false,
   xrayMode = false
@@ -30,7 +30,7 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   const [useplaceholder, setUsePlaceholder] = useState(false);
 
   // Load models and textures at the top level
-  const { scene } = useGLTF(modelPath, undefined, () => {
+  const { scene } = useGLTF(modelPath, true, () => {
     setLoadingError('Failed to load 3D model');
     setUsePlaceholder(true);
   });
@@ -70,17 +70,17 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   }, [scene, normalMap, roughnessMap, xrayMode, useplaceholder]);
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
-    if (!interactive || !onInteraction) return;
+    if (!isInteractive || !onModelInteraction) return;
     
     event.stopPropagation();
     const intersected = event.object;
     if (intersected && intersected.name) {
-      onInteraction(intersected.name);
+      onModelInteraction(intersected.name);
     }
   };
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
-    if (!interactive) return;
+    if (!isInteractive) return;
     
     const intersected = event.object;
     if (intersected && intersected.name) {
@@ -97,11 +97,11 @@ const MedicalModelLoader: React.FC<MedicalModelProps> = ({
   // Determine which placeholder model to use based on levelId
   const getPlaceholderModel = () => {
     if (levelId === 1 || levelId === 5 || levelId === 9) {
-      return <BrainModel interactive={interactive} onInteraction={onInteraction} />;
+      return <BrainModel interactive={isInteractive} onInteraction={onModelInteraction} />;
     } else if (levelId === 2 || levelId === 6) {
-      return <SpineModel interactive={interactive} onInteraction={onInteraction} />;
+      return <SpineModel interactive={isInteractive} onInteraction={onModelInteraction} />;
     } else {
-      return <DefaultAnatomyModel interactive={interactive} onInteraction={onInteraction} />;
+      return <DefaultAnatomyModel interactive={isInteractive} onInteraction={onModelInteraction} />;
     }
   };
 

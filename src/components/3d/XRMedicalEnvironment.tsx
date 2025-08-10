@@ -123,10 +123,10 @@ const XRMedicalEnvironment: React.FC<XRMedicalEnvironmentProps> = ({
             <MedicalModelLoader
               modelPath={getModelPath(level.id)}
               levelId={level.id}
-              onInteraction={handleModelInteraction}
-              interactive={true}
-              xrayMode={level.id > 5}
-              crossSection={level.id > 7}
+              isInteractive={true}
+              onModelInteraction={handleModelInteraction}
+              crossSection={showCrossSection}
+              xrayMode={xrayMode}
             />
           </group>
 
