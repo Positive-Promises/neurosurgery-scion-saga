@@ -38,24 +38,24 @@ const BrainSVG: React.FC<BrainSVGProps> = ({ onRegionClick }) => {
           onClick={() => handleRegionClick('Parietal Lobe')}
           style={getRegionStyle('Parietal Lobe')}
         />
-        {/* Cerebellum */}
+        {/* Brain Stem */}
         <path
           fill="#8a686e"
           fillOpacity=".605"
           stroke="#000"
           strokeWidth="2"
           d="M518 579c7 28 20 47 41 55 30 14 53 48 77 78 13-7 27-13 38-23L560 553l-42 26z"
-          onClick={() => handleRegionClick('Cerebellum')}
-          style={getRegionStyle('Cerebellum')}
+          onClick={() => handleRegionClick('Brain Stem')}
+          style={getRegionStyle('Brain Stem')}
         />
-        {/* Brain Stem */}
+        {/* Cerebellum */}
         <path
           fill="#9487f4"
           stroke="#000"
           strokeWidth="2"
           d="M551 571c0 6 1 12 7 18 2 34 15 45 33 45 80 51 141 54 187 24 19-11 49-22 51-33 22-11 35-22 47-33 19-16 19-44 11-79-190-6-286 19-336 58z"
-          onClick={() => handleRegionClick('Brain Stem')}
-          style={getRegionStyle('Brain Stem')}
+          onClick={() => handleRegionClick('Cerebellum')}
+          style={getRegionStyle('Cerebellum')}
         />
         {/* Temporal Lobe */}
         <path

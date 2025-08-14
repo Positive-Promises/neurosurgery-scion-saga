@@ -1,21 +1,21 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
-import RealisticBrainModel from '@/components/3d/RealisticBrainModel';
+import SafeBrainModel from '@/components/3d/SafeBrainModel';
 import CSFSystem from './CSFSystem';
-import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
+import { GameErrorBoundary, Canvas3DFallback } from '@/components/game/GameErrorBoundary';
 
 const Level1CSFView: React.FC = () => {
   return (
-    <GameErrorBoundary>
+    <GameErrorBoundary fallback={<Canvas3DFallback />}>
       <Canvas camera={{ position: [0, 2, 10], fov: 50 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
 
         <Suspense fallback={null}>
           {/* Render the brain model semi-transparently as a reference */}
-          <group opacity={0.15}>
-            <RealisticBrainModel
+          <group>
+            <SafeBrainModel
               onRegionClick={() => {}}
               onRegionHover={() => {}}
               labeledRegions={new Set()}

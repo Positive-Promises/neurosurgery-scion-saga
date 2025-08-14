@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
+import { OrbitControls, Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
+import { GameErrorBoundary, Canvas3DFallback } from '@/components/game/GameErrorBoundary';
 import RealisticBrainModel from '@/components/3d/RealisticBrainModel';
 
 const TIMER_SECONDS = 60;
@@ -96,7 +96,7 @@ const Gameplay: React.FC<Level1BossBattleProps> = ({ onWin, onLoss }) => {
     return (
       <>
         <Suspense fallback={null}>
-            <group opacity={0.1}>
+            <group>
                 <RealisticBrainModel onRegionClick={() => {}} onRegionHover={() => {}} labeledRegions={new Set()} />
             </group>
             <SurgicalTool ref={toolRef} />
@@ -122,7 +122,7 @@ const Gameplay: React.FC<Level1BossBattleProps> = ({ onWin, onLoss }) => {
 
 const Level1BossBattle: React.FC<Level1BossBattleProps> = ({ onWin, onLoss }) => {
   return (
-    <GameErrorBoundary>
+    <GameErrorBoundary fallback={<Canvas3DFallback />}>
       <Canvas camera={{ position: [0, 2, 10], fov: 50 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />

@@ -5,6 +5,7 @@ import PlayerStats from '@/components/PlayerStats';
 import GameLevel from '@/components/GameLevel';
 import LevelDetailsModal from '@/components/LevelDetailsModal';
 import GameLauncher from '@/components/GameLauncher';
+import TestBrainLoader from '@/components/3d/TestBrainLoader';
 import { GAME_LEVELS } from '@/data/gameLevels';
 import { RootState } from '@/store/gameStore';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,12 @@ const NeurosurgicalScion = () => {
             onClose={handleCloseModal}
             onStartLevel={handleStartLevel}
           />
+
+          {/* Test Brain Loader for debugging */}
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-2">3D Model Test</h3>
+            <TestBrainLoader />
+          </div>
 
           {/* Game Launcher */}
           {showGameLauncher && selectedLevel && (

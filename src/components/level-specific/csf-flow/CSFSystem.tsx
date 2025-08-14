@@ -1,7 +1,9 @@
 import React, { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
+extend({ LineLoop: THREE.LineLoop });
 import { CSF_FLOW_PATH } from '@/data/csfFlowPath';
+
 
 const PARTICLE_COUNT = 150;
 const PARTICLE_SPEED = 0.03;
@@ -51,24 +53,22 @@ const CSFSystem: React.FC = () => {
   return (
     <>
       {/* The visible path for debugging/visualization */}
-      <line loop>
+      <lineLoop>
         <bufferGeometry attach="geometry">
           <bufferAttribute
             attach="attributes-position"
             count={CSF_FLOW_PATH.points.length}
-            array={new THREE.Float32BufferAttribute(
-              CSF_FLOW_PATH.points.flatMap(p => p.toArray()),
-              3
-            )}
+            array={new Float32Array(CSF_FLOW_PATH.points.flatMap(p => p.toArray()))}
+            itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial attach="material" color="#00ffff" transparent opacity={0.3} />
-      </line>
+        <lineBasicMaterial attach="material" color="#00ffff" transparent={true} opacity={0.3} />
+      </lineLoop>
 
       {/* The CSF particles */}
       <instancedMesh ref={particlesRef} args={[undefined, undefined, PARTICLE_COUNT]}>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#87ceeb" emissive="#00ffff" emissiveIntensity={1} transparent opacity={0.8} />
+        <meshStandardMaterial color="#87ceeb" emissive="#00ffff" emissiveIntensity={1} transparent={true} opacity={0.8} />
       </instancedMesh>
     </>
   );

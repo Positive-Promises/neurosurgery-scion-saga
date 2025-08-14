@@ -24,7 +24,7 @@ export const BrainModel: React.FC<{ interactive?: boolean; onInteraction?: (part
         <sphereGeometry args={[1.2, 32, 32]} />
         <meshStandardMaterial 
           color="#ffaaaa" 
-          transparent 
+          transparent={true}
           opacity={0.8}
           roughness={0.6}
         />
@@ -106,7 +106,7 @@ export const SpineModel: React.FC<{ interactive?: boolean; onInteraction?: (part
         <cylinderGeometry args={[0.15, 0.15, 3]} />
         <meshStandardMaterial 
           color="#ffdddd" 
-          transparent 
+          transparent={true}
           opacity={0.7}
         />
       </mesh>
@@ -159,7 +159,7 @@ export const DefaultAnatomyModel: React.FC<{ interactive?: boolean; onInteractio
         <meshStandardMaterial 
           color="#4a90e2" 
           wireframe={false}
-          transparent 
+          transparent={true}
           opacity={0.8}
         />
       </mesh>
