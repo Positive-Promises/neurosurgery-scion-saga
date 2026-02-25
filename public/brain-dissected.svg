@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <!-- Right Cerebrum -->
+  <path d="M50 100 C 100 50, 150 50, 200 100 S 150 150, 100 150 Z" fill="pink" stroke="black" />
+  <text x="125" y="100" font-size="12">Right Cerebrum</text>
+  <!-- Cingulate Gyrus -->
+  <path d="M220 80 C 240 60, 260 60, 280 80" fill="none" stroke="black" />
+  <text x="250" y="50" font-size="12">Cingulate Gyrus</text>
+  <!-- Superior Colliculus -->
+  <circle cx="300" cy="80" r="10" fill="blue" />
+  <text x="290" y="100" font-size="12">Superior Colliculus</text>
+  <!-- Inferior Colliculus -->
+  <circle cx="320" cy="100" r="10" fill="darkblue" />
+  <text x="310" y="120" font-size="12">Inferior Colliculus</text>
+  <!-- Cerebral Peduncle -->
+  <rect x="340" y="80" width="20" height="40" fill="gray" />
+  <text x="330" y="140" font-size="12">Cerebral Peduncle</text>
+  <!-- Medulla Oblongata -->
+  <path d="M360 100 C 380 120, 400 120, 420 100" fill="lightgray" stroke="black" />
+  <text x="380" y="140" font-size="12">Medulla Oblongata</text>
+  <!-- Cerebellum -->
+  <path d="M440 100 C 490 50, 540 50, 590 100 S 540 150, 490 150 Z" fill="beige" stroke="black" />
+  <text x="515" y="100" font-size="12">Cerebellum</text>
+  <!-- Left Cerebrum -->
+  <path d="M610 100 C 660 50, 710 50, 760 100 S 710 150, 660 150 Z" fill="pink" stroke="black" />
+  <text x="685" y="100" font-size="12">Left Cerebrum</text>
+</svg>

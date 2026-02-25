@@ -1,0 +1,16 @@
+This is a placeholder note for the brain anatomy 3D model.
+
+The current system uses placeholder 3D models built with Three.js primitives when this GLB file is not available. The placeholder includes:
+
+- A spherical cerebrum (main brain)
+- A cylindrical brainstem 
+- A smaller spherical cerebellum
+- Interactive regions for frontal, parietal, occipital, and temporal lobes
+
+To add a real 3D brain model:
+1. Create or obtain a segmented brain GLB file
+2. Name it 'brain-anatomy.glb' 
+3. Place it in this directory
+4. Ensure it has properly named mesh parts that match the region mapping in RealisticBrainModel.tsx
+
+The current placeholder system will automatically switch to the real model when available.
