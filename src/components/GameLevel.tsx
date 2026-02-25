@@ -26,19 +26,19 @@ interface GameLevelProps {
   onShowDetails: (level: Level) => void;
 }
 
-const GameLevel: React.FC<GameLevelProps> = ({ level, onLevelSelect, onShowDetails }) => {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Resident': return 'bg-green-500';
-      case 'Chief Resident': return 'bg-yellow-500';
-      case 'Fellow': return 'bg-orange-500';
-      case 'Attending': return 'bg-red-500';
-      case 'Expert': return 'bg-purple-500';
-      case 'Master Surgeon': return 'bg-pink-500';
-      default: return 'bg-gray-500';
-    }
-  };
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'Resident': return 'bg-green-500';
+    case 'Chief Resident': return 'bg-yellow-500';
+    case 'Fellow': return 'bg-orange-500';
+    case 'Attending': return 'bg-red-500';
+    case 'Expert': return 'bg-purple-500';
+    case 'Master Surgeon': return 'bg-pink-500';
+    default: return 'bg-gray-500';
+  }
+};
 
+const GameLevel: React.FC<GameLevelProps> = ({ level, onLevelSelect, onShowDetails }) => {
   return (
     <Card 
       className={`relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 cursor-pointer ${
