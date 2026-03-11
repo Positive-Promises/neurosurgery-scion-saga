@@ -39,9 +39,17 @@ const Level1: React.FC = () => {
       newObjectives.add(objectiveId);
       setObjectives(newObjectives);
 
-      const brainRegionsIdentified = Array.from(newObjectives).filter(id => id.startsWith('identify_')).length >= BRAIN_REGIONS.length;
-      if (brainRegionsIdentified && !explorerComplete) {
-        setExplorerComplete(true);
+      if (!explorerComplete && objectiveId.startsWith('identify_')) {
+        let count = 0;
+        for (const id of newObjectives) {
+          if (id.startsWith('identify_')) {
+            count++;
+            if (count >= BRAIN_REGIONS.length) break;
+          }
+        }
+        if (count >= BRAIN_REGIONS.length) {
+          setExplorerComplete(true);
+        }
       }
     }
   };
