@@ -34,8 +34,7 @@ const CSFSystem: React.FC = () => {
       data.progress = (data.progress + PARTICLE_SPEED * 0.01) % 1;
 
       // Get position on the curve
-      const position = CSF_FLOW_PATH.getPointAt(data.progress);
-      dummy.position.copy(position);
+      CSF_FLOW_PATH.getPointAt(data.progress, dummy.position);
 
       // Add a little bit of random drift for a more fluid look
       dummy.position.x += (Math.sin(time * 0.5 + i) * 0.05);
