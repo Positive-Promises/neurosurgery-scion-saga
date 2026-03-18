@@ -130,6 +130,8 @@ export const BRAIN_REGIONS: BrainRegion[] = [
   }
 ];
 
+export const BRAIN_REGIONS_BY_ID = new Map(BRAIN_REGIONS.map(r => [r.id, r]));
+
 // Educational content for tooltips and information panels
 export const BRAIN_FACTS = {
   overview: "The brain is the most complex part of the human body. This three-pound organ is the seat of intelligence, interpreter of the senses, initiator of body movement, and controller of behavior.",
