@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { BrainRegion, BRAIN_REGIONS } from '@/data/brainAnatomy';
+import { BrainRegion, BRAIN_REGIONS, BRAIN_REGIONS_BY_ID } from '@/data/brainAnatomy';
 import { BrainModel } from './PlaceholderModels';
 
 interface RealisticBrainModelProps {
@@ -22,7 +22,7 @@ const regionNameToIdMap: { [key: string]: string } = {
 const BrainModelAdapter: React.FC<RealisticBrainModelProps> = (props) => {
   const handleInteraction = (partName: string) => {
     const regionId = regionNameToIdMap[partName] || partName;
-    const region = BRAIN_REGIONS.find(r => r.id === regionId);
+    const region = BRAIN_REGIONS_BY_ID.get(regionId);
     if (region) props.onRegionClick(region);
   };
 
@@ -33,7 +33,7 @@ const BrainModelAdapter: React.FC<RealisticBrainModelProps> = (props) => {
       return;
     }
     const regionId = regionNameToIdMap[partName] || partName;
-    const region = BRAIN_REGIONS.find(r => r.id === regionId);
+    const region = BRAIN_REGIONS_BY_ID.get(regionId);
     if (region) props.onRegionHover(region);
   };
 
@@ -68,13 +68,13 @@ const RealisticBrainModelContent: React.FC<RealisticBrainModelProps> = ({
   const { nodes, materials, scene } = gltfData;
   
   const regionNodeMap = {
-    'Cerebrum': BRAIN_REGIONS.find(r => r.id === 'cerebrum'),
-    'Cerebellum': BRAIN_REGIONS.find(r => r.id === 'cerebellum'),
-    'Brain_Stem': BRAIN_REGIONS.find(r => r.id === 'brain_stem'),
-    'Frontal_Lobe': BRAIN_REGIONS.find(r => r.id === 'frontal_lobe'),
-    'Parietal_Lobe': BRAIN_REGIONS.find(r => r.id === 'parietal_lobe'),
-    'Occipital_Lobe': BRAIN_REGIONS.find(r => r.id === 'occipital_lobe'),
-    'Temporal_Lobe': BRAIN_REGIONS.find(r => r.id === 'temporal_lobe'),
+    'Cerebrum': BRAIN_REGIONS_BY_ID.get('cerebrum'),
+    'Cerebellum': BRAIN_REGIONS_BY_ID.get('cerebellum'),
+    'Brain_Stem': BRAIN_REGIONS_BY_ID.get('brain_stem'),
+    'Frontal_Lobe': BRAIN_REGIONS_BY_ID.get('frontal_lobe'),
+    'Parietal_Lobe': BRAIN_REGIONS_BY_ID.get('parietal_lobe'),
+    'Occipital_Lobe': BRAIN_REGIONS_BY_ID.get('occipital_lobe'),
+    'Temporal_Lobe': BRAIN_REGIONS_BY_ID.get('temporal_lobe'),
   };
   
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);

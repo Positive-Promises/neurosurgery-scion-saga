@@ -27,8 +27,8 @@ const FallbackBrainModel: React.FC<FallbackBrainModelProps> = ({
 
     const regionId = regionMap[partName.toLowerCase()];
     if (regionId) {
-      import('@/data/brainAnatomy').then(({ BRAIN_REGIONS }) => {
-        const region = BRAIN_REGIONS.find(r => r.id === regionId);
+      import('@/data/brainAnatomy').then(({ BRAIN_REGIONS_BY_ID }) => {
+        const region = BRAIN_REGIONS_BY_ID.get(regionId);
         if (region) {
           onRegionClick(region);
         }
