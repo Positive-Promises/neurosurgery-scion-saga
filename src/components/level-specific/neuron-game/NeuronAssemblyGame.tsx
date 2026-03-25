@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { NEURON_PARTS, NEURON_DROP_ZONES, NeuronPart } from '@/data/neuronParts';
 import DraggableNeuronPart from './DraggableNeuronPart';
@@ -14,7 +14,7 @@ const NeuronAssemblyGame: React.FC<NeuronAssemblyGameProps> = ({ onGameComplete 
     NEURON_DROP_ZONES.reduce((acc, zone) => ({ ...acc, [zone.id]: null }), {})
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { over, active } = event;
 
     if (over && over.data.current?.accepts === active.id) {
@@ -24,14 +24,16 @@ const NeuronAssemblyGame: React.FC<NeuronAssemblyGameProps> = ({ onGameComplete 
       const part = NEURON_PARTS.find(p => p.id === partId);
       if (part) {
         setPlacedParts(prev => ({ ...prev, [dropZoneId]: part }));
-        setAvailableParts(prev => prev.filter(p => p.id !== partId));
-
-        if (availableParts.length === 1) {
-          onGameComplete();
-        }
+        setAvailableParts(prev => {
+          const newParts = prev.filter(p => p.id !== partId);
+          if (newParts.length === 0) {
+            onGameComplete();
+          }
+          return newParts;
+        });
       }
     }
-  };
+  }, [onGameComplete]);
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
