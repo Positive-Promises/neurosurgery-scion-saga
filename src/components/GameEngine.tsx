@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainRegion, BRAIN_REGIONS } from '@/data/brainAnatomy';
+import { BRAIN_REGIONS } from '@/data/brainAnatomy';
 import MedicalDashboardLayout from './layout/MedicalDashboardLayout';
 import ObjectivesPanel from './game/ObjectivesPanel';
 import EnhancedBrainEducationPanel from './game/EnhancedBrainEducationPanel';
@@ -29,7 +29,6 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
     score,
     progress,
     error,
-    setError,
     labeledParts,
     setLabeledParts,
     hoveredPart,
@@ -41,13 +40,16 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
 
   const handleObjectiveCompleteWithTracking = (objective: string, points: number) => {
     handleObjectiveComplete(objective, points);
-    setLabeledParts(prev => prev + 1);
     
     // Find brain region for education panel
-    const regionName = objective.replace('Identify ', '');
-    const region = BRAIN_REGIONS.find(r => r.name === regionName);
-    if (region) {
-      setSelectedBrainRegion(region);
+    // The objective is now "Identify Region Name"
+    if (objective.startsWith('Identify ')) {
+      const regionName = objective.replace('Identify ', '');
+      const region = BRAIN_REGIONS.find(r => r.name === regionName);
+      if (region) {
+        setSelectedBrainRegion(region);
+        setLabeledParts(prev => prev + 1);
+      }
     }
   };
 
@@ -112,7 +114,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
       rightPanel={
         <EnhancedBrainEducationPanel
           selectedRegion={selectedBrainRegion}
-          hoveredRegion={null}
+          hoveredRegion={hoveredPart}
           identifiedCount={labeledParts}
           totalRegions={BRAIN_REGIONS.length}
         />
@@ -127,6 +129,7 @@ const GameEngine: React.FC<GameEngineProps> = ({ level, onComplete, onExit }) =>
       <GameOverlays
         gameState={gameState}
         score={score}
+        hoveredPart={hoveredPart}
         onResume={() => setGameState('playing')}
         onExit={onExit}
       />

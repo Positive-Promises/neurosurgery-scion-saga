@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Trophy } from 'lucide-react';
+import { Trophy, Info } from 'lucide-react';
 
 interface GameOverlaysProps {
   gameState: 'loading' | 'playing' | 'paused' | 'completed';
   score: number;
+  hoveredPart: string | null;
   onResume: () => void;
   onExit: () => void;
 }
@@ -13,6 +13,7 @@ interface GameOverlaysProps {
 export const GameOverlays: React.FC<GameOverlaysProps> = ({
   gameState,
   score,
+  hoveredPart,
   onResume,
   onExit
 }) => {
@@ -44,6 +45,19 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({
           <Button onClick={onExit} className="bg-cyan-600 hover:bg-cyan-700">
             Continue
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'playing' && hoveredPart) {
+    return (
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 pointer-events-none z-40">
+        <div className="bg-slate-900/80 backdrop-blur-sm border border-cyan-500/50 px-6 py-2 rounded-full flex items-center gap-3 shadow-lg shadow-cyan-500/20">
+          <Info className="w-5 h-5 text-cyan-400" />
+          <span className="text-white font-medium text-lg tracking-wide">
+            {hoveredPart}
+          </span>
         </div>
       </div>
     );
