@@ -29,6 +29,8 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
   const SoftTissue: React.FC<{ position: [number, number, number]; name: string }> = ({ position, name }) => {
     const meshRef = useRef<Mesh>(null);
     const deformationAmount = tissueDeformation.get(name) || 0;
+    // Reusable buffer to avoid per-frame allocation
+    const deformationBuffer = useRef<Float32Array | null>(null);
 
     useFrame(() => {
       if (meshRef.current && deformationAmount > 0) {
@@ -39,7 +41,13 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
         // Apply deformation based on surgical interaction
         if (positionAttribute && deformationAmount > 0) {
           const positions = positionAttribute.array as Float32Array;
-          const newPositions = new Float32Array(positions.length);
+
+          // Ensure buffer exists and is the correct size
+          if (!deformationBuffer.current || deformationBuffer.current.length !== positions.length) {
+            deformationBuffer.current = new Float32Array(positions.length);
+          }
+
+          const newPositions = deformationBuffer.current;
           
           for (let i = 0; i < positions.length; i += 3) {
             newPositions[i] = positions[i];
@@ -116,60 +124,59 @@ import { CollisionEnterPayload } from '@react-three/rapier';
   };
 
   // Blood flow simulation
-  const BloodFlow: React.FC = () => {
+  const BloodFlow: React.FC<{ count?: number }> = ({ count = 100 }) => {
     const particlesRef = useRef<Points>(null);
-    const particles = useRef<Vector3[]>([]);
+    // Store particle data in a single Float32Array [x, y, z, x, y, z, ...]
+    const particlesData = useRef<Float32Array | null>(null);
 
-    useFrame(() => {
-      if (particlesRef.current && particles.current.length > 0) {
-        particles.current.forEach((particle, index) => {
+    // Handle initialization and dynamic resizing of particle count
+    if (!particlesData.current || particlesData.current.length !== count * 3) {
+      particlesData.current = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const idx = i * 3;
+        particlesData.current[idx] = (Math.random() - 0.5) * 4;
+        particlesData.current[idx + 1] = Math.random() * 4;
+        particlesData.current[idx + 2] = (Math.random() - 0.5) * 4;
+      }
+    }
+
+    useFrame((state) => {
+      if (particlesRef.current && particlesData.current) {
+        const data = particlesData.current;
+        const time = state.clock.getElapsedTime();
+
+        for (let i = 0; i < count; i++) {
+          const idx = i * 3;
           // Simulate blood flow
-          particle.y -= 0.01;
-          particle.x += Math.sin(Date.now() * 0.001 + index) * 0.005;
+          data[idx + 1] -= 0.01; // y
+          data[idx] += Math.sin(time + i) * 0.005; // x
           
           // Reset particles when they fall too low
-          if (particle.y < -5) {
-            particle.y = 2;
-            particle.x = (Math.random() - 0.5) * 4;
-            particle.z = (Math.random() - 0.5) * 4;
+          if (data[idx + 1] < -5) {
+            data[idx + 1] = 2;
+            data[idx] = (Math.random() - 0.5) * 4;
+            data[idx + 2] = (Math.random() - 0.5) * 4;
           }
-        });
-
-        const positions = new Float32Array(particles.current.length * 3);
-        particles.current.forEach((particle, index) => {
-          positions[index * 3] = particle.x;
-          positions[index * 3 + 1] = particle.y;
-          positions[index * 3 + 2] = particle.z;
-        });
+        }
 
         const positionAttribute = particlesRef.current.geometry.getAttribute('position');
-        if (positionAttribute) {
-          // Use direct array assignment instead of copyArray
-          (positionAttribute.array as Float32Array).set(positions);
+        if (positionAttribute && positionAttribute.array.length === data.length) {
+          // Update the attribute array directly from our particlesData
+          (positionAttribute.array as Float32Array).set(data);
           positionAttribute.needsUpdate = true;
         }
       }
     });
 
-    // Initialize particles
-    React.useEffect(() => {
-      particles.current = Array.from({ length: 100 }, () => 
-        new Vector3(
-          (Math.random() - 0.5) * 4,
-          Math.random() * 4,
-          (Math.random() - 0.5) * 4
-        )
-      );
-    }, []);
 
     return (
       <points ref={particlesRef}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={100}
+            count={count}
             itemSize={3}
-            array={new Float32Array(300)}
+            array={new Float32Array(count * 3)}
           />
         </bufferGeometry>
         <pointsMaterial color="#ff0000" size={0.05} />
