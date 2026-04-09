@@ -43,6 +43,16 @@ const BrainModelAdapter: React.FC<RealisticBrainModelProps> = (props) => {
   return <BrainModel interactive={true} onInteraction={handleInteraction} />;
 };
 
+const REGION_NODE_MAP: Record<string, BrainRegion | undefined> = {
+  'Cerebrum': BRAIN_REGIONS_BY_ID.get('cerebrum'),
+  'Cerebellum': BRAIN_REGIONS_BY_ID.get('cerebellum'),
+  'Brain_Stem': BRAIN_REGIONS_BY_ID.get('brain_stem'),
+  'Frontal_Lobe': BRAIN_REGIONS_BY_ID.get('frontal_lobe'),
+  'Parietal_Lobe': BRAIN_REGIONS_BY_ID.get('parietal_lobe'),
+  'Occipital_Lobe': BRAIN_REGIONS_BY_ID.get('occipital_lobe'),
+  'Temporal_Lobe': BRAIN_REGIONS_BY_ID.get('temporal_lobe'),
+};
+
 const RealisticBrainModelContent: React.FC<RealisticBrainModelProps> = ({
   onRegionClick,
   onRegionHover,
@@ -67,20 +77,10 @@ const RealisticBrainModelContent: React.FC<RealisticBrainModelProps> = ({
 
   const { nodes, materials, scene } = gltfData;
   
-  const regionNodeMap = {
-    'Cerebrum': BRAIN_REGIONS_BY_ID.get('cerebrum'),
-    'Cerebellum': BRAIN_REGIONS_BY_ID.get('cerebellum'),
-    'Brain_Stem': BRAIN_REGIONS_BY_ID.get('brain_stem'),
-    'Frontal_Lobe': BRAIN_REGIONS_BY_ID.get('frontal_lobe'),
-    'Parietal_Lobe': BRAIN_REGIONS_BY_ID.get('parietal_lobe'),
-    'Occipital_Lobe': BRAIN_REGIONS_BY_ID.get('occipital_lobe'),
-    'Temporal_Lobe': BRAIN_REGIONS_BY_ID.get('temporal_lobe'),
-  };
-  
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
 
   const handleRegionPointerOver = (regionId: string) => {
-    const region = regionNodeMap[regionId];
+    const region = REGION_NODE_MAP[regionId];
     if (region) {
       setHoveredRegion(region.id);
       onRegionHover(region);
@@ -95,7 +95,7 @@ const RealisticBrainModelContent: React.FC<RealisticBrainModelProps> = ({
   };
 
   const handleRegionClick = (regionId: string) => {
-    const region = regionNodeMap[regionId];
+    const region = REGION_NODE_MAP[regionId];
     if (region) onRegionClick(region);
   };
 
@@ -103,7 +103,7 @@ const RealisticBrainModelContent: React.FC<RealisticBrainModelProps> = ({
     <group ref={brainGroupRef} position={[0, 0, 0]}>
       {Object.entries(nodes).map(([nodeName, node]) => {
         if (node instanceof THREE.Mesh && node.material) {
-          const region = regionNodeMap[nodeName as keyof typeof regionNodeMap];
+          const region = REGION_NODE_MAP[nodeName as keyof typeof REGION_NODE_MAP];
           const isHovered = hoveredRegion === region?.id;
           const isLabeled = labeledRegions.has(region?.id || '');
           
