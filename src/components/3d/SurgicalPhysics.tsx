@@ -28,6 +28,8 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
   // Soft tissue physics simulation
   const SoftTissue: React.FC<{ position: [number, number, number]; name: string }> = ({ position, name }) => {
     const meshRef = useRef<Mesh>(null);
+    const originalPositions = useRef<Float32Array | null>(null);
+    const deformationOffsets = useRef<Float32Array | null>(null);
     const deformationAmount = tissueDeformation.get(name) || 0;
 
     useFrame(() => {
@@ -36,19 +38,29 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
         const geometry = meshRef.current.geometry as BufferGeometry;
         const positionAttribute = geometry.getAttribute('position');
         
-        // Apply deformation based on surgical interaction
-        if (positionAttribute && deformationAmount > 0) {
+        if (positionAttribute) {
           const positions = positionAttribute.array as Float32Array;
-          const newPositions = new Float32Array(positions.length);
           
+          // Initialize cached arrays if needed
+          if (!originalPositions.current) {
+            originalPositions.current = new Float32Array(positions);
+            deformationOffsets.current = new Float32Array(positions.length / 3);
+            for (let i = 0; i < deformationOffsets.current.length; i++) {
+              deformationOffsets.current[i] = Math.random();
+            }
+          }
+
+          const originals = originalPositions.current;
+          const offsets = deformationOffsets.current!;
+
+          // Apply deformation relative to original state
           for (let i = 0; i < positions.length; i += 3) {
-            newPositions[i] = positions[i];
-            newPositions[i + 1] = positions[i + 1] - deformationAmount * 0.1 * Math.random();
-            newPositions[i + 2] = positions[i + 2];
+            const vertexIndex = i / 3;
+            positions[i] = originals[i];
+            positions[i + 1] = originals[i + 1] - deformationAmount * 0.1 * offsets[vertexIndex];
+            positions[i + 2] = originals[i + 2];
           }
           
-          // Use direct array assignment instead of copyArray
-          (positionAttribute.array as Float32Array).set(newPositions);
           positionAttribute.needsUpdate = true;
           geometry.computeVertexNormals();
         }
@@ -118,33 +130,30 @@ import { CollisionEnterPayload } from '@react-three/rapier';
   // Blood flow simulation
   const BloodFlow: React.FC = () => {
     const particlesRef = useRef<Points>(null);
-    const particles = useRef<Vector3[]>([]);
+    const particlePositions = useRef<Float32Array>(new Float32Array(300));
+    const PARTICLE_COUNT = 100;
 
     useFrame(() => {
-      if (particlesRef.current && particles.current.length > 0) {
-        particles.current.forEach((particle, index) => {
+      if (particlesRef.current) {
+        const positions = particlePositions.current;
+        const now = Date.now();
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const idx = i * 3;
           // Simulate blood flow
-          particle.y -= 0.01;
-          particle.x += Math.sin(Date.now() * 0.001 + index) * 0.005;
+          positions[idx + 1] -= 0.01; // y
+          positions[idx] += Math.sin(now * 0.001 + i) * 0.005; // x
           
           // Reset particles when they fall too low
-          if (particle.y < -5) {
-            particle.y = 2;
-            particle.x = (Math.random() - 0.5) * 4;
-            particle.z = (Math.random() - 0.5) * 4;
+          if (positions[idx + 1] < -5) {
+            positions[idx + 1] = 2;
+            positions[idx] = (Math.random() - 0.5) * 4;
+            positions[idx + 2] = (Math.random() - 0.5) * 4;
           }
-        });
-
-        const positions = new Float32Array(particles.current.length * 3);
-        particles.current.forEach((particle, index) => {
-          positions[index * 3] = particle.x;
-          positions[index * 3 + 1] = particle.y;
-          positions[index * 3 + 2] = particle.z;
-        });
+        }
 
         const positionAttribute = particlesRef.current.geometry.getAttribute('position');
         if (positionAttribute) {
-          // Use direct array assignment instead of copyArray
           (positionAttribute.array as Float32Array).set(positions);
           positionAttribute.needsUpdate = true;
         }
@@ -153,13 +162,13 @@ import { CollisionEnterPayload } from '@react-three/rapier';
 
     // Initialize particles
     React.useEffect(() => {
-      particles.current = Array.from({ length: 100 }, () => 
-        new Vector3(
-          (Math.random() - 0.5) * 4,
-          Math.random() * 4,
-          (Math.random() - 0.5) * 4
-        )
-      );
+      const positions = particlePositions.current;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const idx = i * 3;
+        positions[idx] = (Math.random() - 0.5) * 4;
+        positions[idx + 1] = Math.random() * 4;
+        positions[idx + 2] = (Math.random() - 0.5) * 4;
+      }
     }, []);
 
     return (
@@ -167,9 +176,9 @@ import { CollisionEnterPayload } from '@react-three/rapier';
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={100}
+            count={PARTICLE_COUNT}
             itemSize={3}
-            array={new Float32Array(300)}
+            array={particlePositions.current}
           />
         </bufferGeometry>
         <pointsMaterial color="#ff0000" size={0.05} />
