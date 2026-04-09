@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { GameErrorBoundary, Canvas3DFallback } from '../game/GameErrorBoundary';
@@ -15,32 +15,39 @@ const Level1Gameplay: React.FC<Level1GameplayProps> = ({
   onHoverChange,
 }) => {
   const [identifiedCount, setIdentifiedCount] = useState(0);
+  const [identifiedRegions, setIdentifiedRegions] = useState<Set<string>>(new Set());
   
-  // Simplified logic for objective completion, perhaps add buttons for regions
   const handleIdentify = (regionId: string) => {
-    // Simulate identification
+    if (identifiedRegions.has(regionId)) return;
+
+    const region = BRAIN_REGIONS.find(r => r.id === regionId);
+    const regionName = region ? region.name : regionId;
+
+    const newIdentified = new Set(identifiedRegions);
+    newIdentified.add(regionId);
+    setIdentifiedRegions(newIdentified);
+
     const newCount = identifiedCount + 1;
     setIdentifiedCount(newCount);
-    onObjectiveComplete(`identify_${regionId}`, 10);
+
+    onObjectiveComplete(`Identify ${regionName}`, 10);
+
     if (newCount === BRAIN_REGIONS.length) {
-      onObjectiveComplete('identify_all_regions', 100);
+      onObjectiveComplete('All regions identified', 100);
     }
   };
 
-  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
-  const [identifiedRegions, setIdentifiedRegions] = useState<Set<string>>(new Set());
-
   const handleRegionClick = (region: any) => {
-    if (region && !identifiedRegions.has(region.id)) {
-      const newIdentified = new Set(identifiedRegions);
-      newIdentified.add(region.id);
-      setIdentifiedRegions(newIdentified);
+    if (region) {
       handleIdentify(region.id);
     }
   };
 
   const handleRegionHover = (region: any) => {
-    setHoveredRegion(region ? region.name : null);
+    const name = region ? region.name : null;
+    if (onHoverChange) {
+      onHoverChange(name);
+    }
   };
 
   return (
@@ -71,38 +78,6 @@ const Level1Gameplay: React.FC<Level1GameplayProps> = ({
             autoRotateSpeed={0.5}
           />
         </Canvas>
-        
-        {/* UI Overlay */}
-        <div className="absolute top-4 left-4 bg-black/70 text-white p-4 rounded-lg">
-          <h3 className="text-lg font-bold mb-2">Brain Anatomy Explorer</h3>
-          <p className="text-sm mb-2">Click on brain regions to identify them</p>
-          <div className="text-sm">
-            Progress: {identifiedRegions.size} / {BRAIN_REGIONS.length} regions
-          </div>
-          {hoveredRegion && (
-            <div className="mt-2 text-cyan-300">
-              Hovering: {hoveredRegion}
-            </div>
-          )}
-        </div>
-
-        {/* Region buttons for accessibility */}
-        <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 justify-center">
-          {BRAIN_REGIONS.map(region => (
-            <button
-              key={region.id}
-              onClick={() => handleIdentify(region.id)}
-              disabled={identifiedRegions.has(region.id)}
-              className={`px-3 py-1 rounded text-sm ${
-                identifiedRegions.has(region.id)
-                  ? 'bg-green-600 text-white'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              {region.name}
-            </button>
-          ))}
-        </div>
       </div>
     </GameErrorBoundary>
   );

@@ -1,8 +1,5 @@
-
 import React, { Suspense, useEffect, useState, lazy } from 'react';
 import { useSelector } from 'react-redux';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import { GameErrorBoundary, Canvas3DFallback } from './GameErrorBoundary';
 import { RootState } from '@/store/gameStore';
 import { WEBGL } from '@/utils/webgl';
@@ -60,8 +57,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           onHoverChange={onHoverChange}
         />;
       case 2:
-        // Note: Level2Gameplay is not inside a Canvas, so it provides its own.
-        // This logic might need refinement if more levels are added.
         return <Level2Gameplay onObjectiveComplete={onObjectiveComplete} />;
       default:
         return <Level1Gameplay 
@@ -96,34 +91,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     );
   }
 
-  // For Level 2, the component provides its own canvas, so we render it directly.
-  if (level.id === 2) {
-    return (
+  // Each 3D level component is now self-contained and provides its own Canvas or rendering context.
+  return (
+    <GameErrorBoundary fallback={<Canvas3DFallback />}>
       <Suspense fallback={<LoadingFallback />}>
         {renderLevelGameplay3D()}
       </Suspense>
-    );
-  }
-
-  return (
-    <GameErrorBoundary fallback={<Canvas3DFallback />}>
-      <Canvas camera={{ position: [5, 2, 5], fov: 60 }} className="w-full h-full">
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
-        
-        <OrbitControls 
-          enablePan={true} 
-          enableZoom={true} 
-          enableRotate={true}
-          maxDistance={10}
-          minDistance={2}
-        />
-        
-        <Suspense fallback={<Canvas3DFallback />}>
-          {renderLevelGameplay3D()}
-        </Suspense>
-      </Canvas>
     </GameErrorBoundary>
   );
 };
