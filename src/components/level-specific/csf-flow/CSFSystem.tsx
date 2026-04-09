@@ -24,6 +24,19 @@ const CSFSystem: React.FC = () => {
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
+  // Pre-calculate the Float32Array for the path geometry to avoid re-allocating it on every render
+  const pathPositions = useMemo(() => {
+    const points = CSF_FLOW_PATH.points;
+    const array = new Float32Array(points.length * 3);
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      array[i * 3] = p.x;
+      array[i * 3 + 1] = p.y;
+      array[i * 3 + 2] = p.z;
+    }
+    return array;
+  }, []);
+
   useFrame((state) => {
     if (!particlesRef.current) return;
 
@@ -57,7 +70,7 @@ const CSFSystem: React.FC = () => {
           <bufferAttribute
             attach="attributes-position"
             count={CSF_FLOW_PATH.points.length}
-            array={new Float32Array(CSF_FLOW_PATH.points.flatMap(p => p.toArray()))}
+            array={pathPositions}
             itemSize={3}
           />
         </bufferGeometry>
