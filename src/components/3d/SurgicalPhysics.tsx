@@ -29,6 +29,7 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
   const SoftTissue: React.FC<{ position: [number, number, number]; name: string }> = ({ position, name }) => {
     const meshRef = useRef<Mesh>(null);
     const deformationAmount = tissueDeformation.get(name) || 0;
+    const deformationBuffer = useRef<Float32Array | null>(null);
 
     useFrame(() => {
       if (meshRef.current && deformationAmount > 0) {
@@ -37,12 +38,18 @@ const SurgicalPhysics: React.FC<SurgicalPhysicsProps> = ({
         const positionAttribute = geometry.getAttribute('position');
         
         // Apply deformation based on surgical interaction
-        if (positionAttribute && deformationAmount > 0) {
+        if (positionAttribute) {
           const positions = positionAttribute.array as Float32Array;
-          const newPositions = new Float32Array(positions.length);
+
+          if (!deformationBuffer.current || deformationBuffer.current.length !== positions.length) {
+            deformationBuffer.current = new Float32Array(positions.length);
+          }
+          const newPositions = deformationBuffer.current;
           
           for (let i = 0; i < positions.length; i += 3) {
             newPositions[i] = positions[i];
+            // Pre-calculate random factor to minimize Math.random() calls if needed,
+            // but here we keep it for visual variety while avoiding array allocation
             newPositions[i + 1] = positions[i + 1] - deformationAmount * 0.1 * Math.random();
             newPositions[i + 2] = positions[i + 2];
           }
@@ -119,13 +126,22 @@ import { CollisionEnterPayload } from '@react-three/rapier';
   const BloodFlow: React.FC = () => {
     const particlesRef = useRef<Points>(null);
     const particles = useRef<Vector3[]>([]);
+    const positionsBuffer = useRef<Float32Array | null>(null);
 
-    useFrame(() => {
+    useFrame((state) => {
       if (particlesRef.current && particles.current.length > 0) {
+        const time = state.clock.getElapsedTime();
+
+        // Ensure buffer is correctly sized
+        if (!positionsBuffer.current || positionsBuffer.current.length !== particles.current.length * 3) {
+          positionsBuffer.current = new Float32Array(particles.current.length * 3);
+        }
+        const positions = positionsBuffer.current;
+
         particles.current.forEach((particle, index) => {
           // Simulate blood flow
           particle.y -= 0.01;
-          particle.x += Math.sin(Date.now() * 0.001 + index) * 0.005;
+          particle.x += Math.sin(time + index) * 0.005;
           
           // Reset particles when they fall too low
           if (particle.y < -5) {
@@ -133,10 +149,8 @@ import { CollisionEnterPayload } from '@react-three/rapier';
             particle.x = (Math.random() - 0.5) * 4;
             particle.z = (Math.random() - 0.5) * 4;
           }
-        });
 
-        const positions = new Float32Array(particles.current.length * 3);
-        particles.current.forEach((particle, index) => {
+          // Directly update buffer in same loop
           positions[index * 3] = particle.x;
           positions[index * 3 + 1] = particle.y;
           positions[index * 3 + 2] = particle.z;
